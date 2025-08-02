@@ -1,0 +1,61 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>دكتورة هايدي | حجز موعد</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- 🟧 Header -->
+  <header class="main-header">
+    <div class="logo">دكتورة أسماء</div>
+    <button class="login-btn">Login</button>
+  </header>
+
+  <!-- 🟠 Progress Bar -->
+  <div class="progress-bar">
+    <div class="step active">1</div>
+    <div class="line"></div>
+    <div class="step">2</div>
+    <div class="line"></div>
+    <div class="step">3</div>
+  </div>
+
+  <!-- 📅 Step 1: Pick a Date -->
+  <section class="step-content" id="step-1">
+    <h2>Step 1: Pick a Date</h2>
+    <div class="calendar-container">
+      <!-- سيتم تعبئة التقويم عبر JavaScript -->
+      <div id="calendar"></div>
+    </div>
+  </section>
+
+  <!-- 🔘 Navigation Buttons -->
+  <div class="navigation-buttons">
+    <button class="btn back-btn" disabled>Back</button>
+    <button class="btn next-btn" id="to-step-2">Next</button>
+  </div>
+
+  <!-- 🔻 Footer -->
+  <footer>
+    <div id="system-time"></div>
+    <div class="copyright">© 2025 dev.rift</div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
+<!-- 🕓 Step 2: Pick a Time -->
+<section class="step-content hidden" id="step-2">
+  <h2>Step 2: Pick a Time</h2>
+  <div class="time-grid" id="time-grid">
+    <!-- سيتم توليد الأوقات هنا -->
+  </div>
+</section>
+<!-- 🔘 Navigation Buttons for Step 2 -->
+<div class="navigation-buttons hidden" id="nav-step-2">
+  <button class="btn back-btn" id="back-to-step-1">Back</button>
+  <button class="btn next-btn" id="to-step-3" disabled>Next</button>
+</div>

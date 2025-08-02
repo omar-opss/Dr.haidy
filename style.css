@@ -1,0 +1,188 @@
+ /* 👁️ الخط العام */
+body {
+  margin: 0;
+  font-family: 'Cairo', sans-serif;
+  background-color: #121212; /* رمادي داكن */
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 🔝 Header */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1e1e1e;
+  padding: 20px 30px;
+  border-bottom: 1px solid #333;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.login-btn {
+  background-color: #ff6600;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* 🟠 Progress Bar */
+.progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+  gap: 10px;
+}
+
+.step {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #555;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.step.active {
+  background-color: #ff6600;
+}
+
+.line {
+  width: 50px;
+  height: 3px;
+  background-color: #555;
+}
+
+/* 📅 Step Content */
+.step-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 20px;
+}
+
+.step-content h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* 📆 Calendar */
+.calendar-container {
+  background-color: #1e1e1e;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 40px);
+  gap: 10px;
+  justify-content: center;
+}
+
+.day {
+  width: 40px;
+  height: 40px;
+  text-align: center;
+  line-height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  background-color: #222;
+  color: white;
+}
+
+.day:hover {
+  background-color: #333;
+}
+
+.day.disabled {
+  color: #888;
+  cursor: not-allowed;
+}
+
+.day.selected {
+  background-color: #ff6600;
+  color: white;
+}
+
+/* 🔘 Navigation Buttons */
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 30px;
+}
+
+.btn {
+  padding: 10px 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.back-btn {
+  background-color: #2c2c2c;
+  color: white;
+}
+
+.next-btn {
+  background-color: #ff6600;
+  color: white;
+}
+
+/* 🔻 Footer */
+footer {
+  background-color: #1e1e1e;
+  padding: 10px 30px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #ccc;
+  border-top: 1px solid #333;
+}
+.hidden {
+  display: none;
+}
+
+/* شبكة الأوقات */
+.time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+  max-width: 500px;
+}
+
+.time-slot {
+  padding: 10px 0;
+  text-align: center;
+  background-color: #1e1e1e;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  border: 1px solid #333;
+}
+
+.time-slot:hover {
+  background-color: #2c2c2c;
+}
+
+.time-slot.selected {
+  background-color: #ff6600;
+  color: white;
+  font-weight: bold;
+}
