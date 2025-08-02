@@ -47,16 +47,31 @@
   <script src="script.js"></script>
 </body>
 </html>
-<!-- 🕓 Step 2: Pick a Time -->
-<section class="step-content hidden" id="step-2">
-  <h2>Step 2: Pick a Time</h2>
-  <div class="time-grid" id="time-grid">
-    <!-- سيتم توليد الأوقات هنا -->
-  </div>
-</section>
+<form action="submit_booking.php" method="POST">
+    <h2>Book Appointment</h2>
+    <input type="text" name="name" placeholder="Your Name" required />
+    <input type="tel" name="phone" placeholder="Phone Number" required />
+    <input type="date" name="date" required />
+    <select name="time" required>
+      <option value="">Choose Time</option>
+      <option value="10:00 AM">10:00 AM</option>
+      <option value="11:00 AM">11:00 AM</option>
+      <option value="12:00 PM">12:00 PM</option>
+      <option value="1:00 PM">1:00 PM</option>
+      <option value="2:00 PM">2:00 PM</option>
+      <option value="3:00 PM">3:00 PM</option>
+      <option value="4:00 PM">4:00 PM</option>
+      <option value="5:00 PM">5:00 PM</option>
+      <option value="6:00 PM">6:00 PM</option>
+      <option value="7:00 PM">7:00 PM</option>
+      <option value="8:00 PM">8:00 PM</option>
+    </select>
+    <button type="submit">Confirm Booking</button>
+  </form>
 <!-- 🔘 Navigation Buttons for Step 2 -->
 <div class="navigation-buttons hidden" id="nav-step-2">
   <button class="btn back-btn" id="back-to-step-1">Back</button>
   <button class="btn next-btn" id="to-step-3" disabled>Next</button>
 
 </div>
+
