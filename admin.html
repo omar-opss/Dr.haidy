@@ -98,14 +98,22 @@ const firebaseConfig = {
     tableBody.innerHTML = "";
     snapshot.forEach(child => {
       const data = child.val();
+
+      const name = data.Name || data.name || "—";
+      const phone = data.Phone || data.phone || "—";
+      const email = data.Email || data.email || "—";
+      const date = data.Date || data.date || "—";
+      const time = data.Time || data.time || "—";
+      const people = data.People || data.people || "—";
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${data.Name || "—"}</td>
-        <td>${data.Phone || "—"}</td>
-        <td>—</td> <!-- email مش موجود -->
-        <td>${data.Date || "—"}</td>
-        <td>${data.Time || "—"}</td>
-        <td>—</td> <!-- people مش موجود -->
+        <td>${name}</td>
+        <td>${phone}</td>
+        <td>-</td>
+        <td>${date}</td>
+        <td>${time}</td>
+        <td>-</td>
         <td><button onclick="deleteBooking('${child.key}')">🗑 حذف</button></td>
       `;
       tableBody.appendChild(tr);
@@ -137,4 +145,5 @@ const firebaseConfig = {
 </body>
 
 </html>
+
 
