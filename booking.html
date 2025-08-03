@@ -98,32 +98,38 @@
     function renderTimesGrid(bookedTimes) {
       const container = document.getElementById("timesGrid");
       container.innerHTML = "";
+      
+      function renderTimesGrid(bookedTimes) {
+  const container = document.getElementById("timesGrid");
+  container.innerHTML = "";
 
-      const allTimes = [
-        "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
-        "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM",
-        "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM",
-        "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM",
-        "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM"
-      ];
+  const allTimes = [
+    "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+    "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM",
+    "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM",
+    "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM",
+    "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM"
+  ];
 
-      allTimes.forEach(time => {
-        const btn = document.createElement("button");
-        btn.textContent = time;
+  allTimes.forEach(time => {
+    const btn = document.createElement("button");
+    btn.textContent = time;
 
-       if (bookedTimes.includes(time)) {
-  btn.disabled = true;
-  btn.style.backgroundColor = "red";
-  btn.style.color = "white";
-} else {
-  btn.style.backgroundColor = "green";
-  btn.style.color = "white";
-  btn.onclick = () => selectTime(btn, time);
-}
-        container.appendChild(btn);
-      });
+    if (bookedTimes.includes(time)) {
+      // وقت محجوز: أحمر ومقفول
+      btn.disabled = true;
+      btn.style.backgroundColor = "red";
+      btn.style.color = "white";
+    } else {
+      // وقت متاح: أخضر عادي
+      btn.style.backgroundColor = "#00aa00"; // أخضر فاتح
+      btn.style.color = "white";
+      btn.onclick = () => selectTime(btn, time);
     }
 
+    container.appendChild(btn);
+  });
+}
     function selectTime(button, time) {
       selectedTime = time;
 
@@ -174,3 +180,4 @@
 
 </body>
 </html>
+
