@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>لوحة تحكم الأدمن</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #ff5722;
+    }
+    button {
+      background-color: #ff5722;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      cursor: pointer;
+    }
+    #loginForm {
+      display: flex;
+      flex-direction: column;
+      width: 300px;
+      margin: 100px auto;
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    #adminPanel {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="loginForm">
+    <h2>تسجيل دخول الأدمن</h2>
+    <input type="password" id="adminPass" placeholder="كلمة السر" />
+    <button onclick="login()">دخول</button>
+  </div>
+
+  <div id="adminPanel">
+    <h1>لوحة تحكم الأدمن</h1>
+    <table id="bookingsTable">
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>رقم الهاتف</th>
+          <th>الإيميل</th>
+          <th>التاريخ</th>
+          <th>الوقت</th>
+          <th>عدد الأشخاص</th>
+          <th>حذف</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <!-- البيانات تيجي من Firebase -->
+      </tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    // firebase config بتاعك هنا
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDvdYelGHJPA49QsZ9wCaAyy9tT-eP3nrw",
+  authDomain: "clinic-booking-eeaee.firebaseapp.com",
+  databaseURL: "https://clinic-booking-eeaee-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "clinic-booking-eeaee",
+  storageBucket: "clinic-booking-eeaee.firebasestorage.app",
+  messagingSenderId: "21071960927",
+  appId: "1:21071960927:web:d46bea119060b4f046b4ea",
+  measurementId: "G-8H7KWF6Q09"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    const tableBody = document.getElementById("tableBody");
+
+    function fetchBookings() {
+      const bookingsRef = ref(database, 'bookings/');
+      onValue(bookingsRef, (snapshot) => {
+        tableBody.innerHTML = "";
+        snapshot.forEach(child => {
+          const data = child.val();
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${data.name}</td>
+            <td>${data.phone}</td>
+            <td>${data.email}</td>
+            <td>${data.date}</td>
+            <td>${data.time}</td>
+            <td>${data.people}</td>
+            <td><button onclick="deleteBooking('${child.key}')">🗑 حذف</button></td>
+          `;
+          tableBody.appendChild(tr);
+        });
+      });
+    }
+
+    window.deleteBooking = function(key) {
+      const bookingRef = ref(database, 'bookings/' + key);
+      remove(bookingRef).then(() => {
+        alert("تم حذف الحجز بنجاح");
+      }).catch(err => {
+        alert("حدث خطأ أثناء الحذف");
+        console.error(err);
+      });
+    };
+
+    window.login = function() {
+      const pass = document.getElementById("adminPass").value;
+      if (pass === "admin2025") {
+        document.getElementById("loginForm").style.display = "none";
+        document.getElementById("adminPanel").style.display = "block";
+        fetchBookings();
+      } else {
+        alert("كلمة السر غير صحيحة");
+      }
+    };
+  </script>
+</body>
+</html>
