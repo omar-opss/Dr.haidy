@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
 import { getDatabase, ref, push, get } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
 
-// إعدادات Firebase الخاصة بيك
 const firebaseConfig = {
   apiKey: "AIzaSyDvdYelGHJPA49QsZ9wCaAyy9tT-eP3nrw",
   authDomain: "clinic-booking-eeaee.firebaseapp.com",
@@ -47,21 +46,11 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     time: time
   });
 
- 
+  status.textContent = "✅ Booking confirmed!";
 
-أيوه 💯  
-بما إن عندك ملف اسمه `script.js`، وكنت بتستخدمه أصلاً في مشروعك لحجز المواعيد، فده هو نفس دور `app.js` اللي كنا هنعمله.
+  const message = `Name: ${name}%0APhone: ${phone}%0ADate: ${date}%0ATime: ${time}`;
+  const whatsappURL = `https://wa.me/201012345678?text=${message}`;
+  window.open(whatsappURL, '_blank');
 
-يعني **أيوه، `script.js` هو هو نفس الملف المطلوب** 👇
-
----
-
-## ✅ المطلوب دلوقتي:
-
-1. افتح `script.js`  
-2. امسح أي كود قديم جواه (لو فيه)
-3. انسخ الكود الجاهز اللي كتبته فوق والصقه بالكامل جواه
-4. **تأكد إنك رابط الملف داخل `index.html` زي كده:**
-
-```html
-<script type="module" src="script.js"></script>
+  this.reset();
+});
