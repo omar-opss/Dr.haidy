@@ -37,23 +37,37 @@
       background-color: green;
       color: white;
     }
+
+    .form-group {
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
 
   <h1>احجز موعدك</h1>
 
-  <label for="bookingDate">اختر اليوم:</label>
-  <input type="date" id="bookingDate" onchange="loadAvailableTimes()" />
+  <div class="form-group">
+    <label for="bookingDate">اختر اليوم:</label>
+    <input type="date" id="bookingDate" onchange="loadAvailableTimes()" />
+  </div>
 
-  <h2>اختر الوقت:</h2>
-  <div id="timesGrid"></div>
+  <div class="form-group">
+    <h2>اختر الوقت:</h2>
+    <div id="timesGrid"></div>
+  </div>
 
-  <!-- باقي نموذج الحجز (اسم، رقم، تأكيد) ممكن نضيفه بعدين -->
+  <div class="form-group">
+    <input type="text" id="name" placeholder="الاسم" required />
+    <input type="tel" id="phone" placeholder="رقم الهاتف" required />
+    <input type="email" id="email" placeholder="البريد الإلكتروني (اختياري)" />
+  </div>
+
+  <button onclick="submitBooking()">تأكيد الحجز</button>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDvdYelGHJPA49QsZ9wCaAyy9tT-eP3nrw",
@@ -97,12 +111,15 @@
         const btn = document.createElement("button");
         btn.textContent = time;
 
-        if (bookedTimes.includes(time)) {
-          btn.disabled = true;
-        } else {
-          btn.onclick = () => selectTime(btn, time);
-        }
-
+       if (bookedTimes.includes(time)) {
+  btn.disabled = true;
+  btn.style.backgroundColor = "red";
+  btn.style.color = "white";
+} else {
+  btn.style.backgroundColor = "green";
+  btn.style.color = "white";
+  btn.onclick = () => selectTime(btn, time);
+}
         container.appendChild(btn);
       });
     }
@@ -110,13 +127,48 @@
     function selectTime(button, time) {
       selectedTime = time;
 
-      // إزالة التحديد السابق
       document.querySelectorAll("#timesGrid button").forEach(btn => {
         btn.classList.remove("selected");
       });
 
-      // تمييز الزر المحدد
       button.classList.add("selected");
+    }
+
+    function submitBooking() {
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const date = document.getElementById("bookingDate").value;
+
+      if (!name || !phone || !date || !selectedTime) {
+        alert("من فضلك أكمل جميع البيانات واختر موعدًا.");
+        return;
+      }
+
+      const bookingData = {
+        name,
+        phone,
+        email,
+        date,
+        time: selectedTime
+      };
+
+      const bookingRef = ref(database, `bookings/${date}/${selectedTime}`);
+      push(bookingRef, bookingData)
+        .then(() => {
+          alert("تم الحجز بنجاح!");
+
+          // إرسال على واتساب
+          const message = `👋 مرحبًا، تم تأكيد حجز باسم: ${name}%0a📅 التاريخ: ${date}%0a🕒 الوقت: ${selectedTime}%0a📞 الهاتف: ${phone}`;
+          const whatsappURL = `https://wa.me/201010876605?text=${message}`;
+          setTimeout(() => {
+            window.location.href = whatsappURL;
+          }, 100);
+        })
+        .catch((error) => {
+          alert("حدث خطأ أثناء الحجز.");
+          console.error(error);
+        });
     }
   </script>
 
