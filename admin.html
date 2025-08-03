@@ -192,7 +192,7 @@
 
 function login() {
   const pass = document.getElementById("adminPass").value;
-  if (pass === "omar2025") {
+  if (pass === "admin2025") {
     document.getElementById("loginForm").style.display = "none";
     document.getElementById("adminPanel").style.display = "block";
     fetchBookings();
@@ -201,11 +201,4 @@ function login() {
   }
 }
 
-window.login = login; // 
-  </script>
-</body>
-</html>
-
-
-
-
+window.login = login; // ✅ خلي ده بعد تعريف الدالة مباشرة
