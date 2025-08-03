@@ -55,3 +55,6 @@ document.getElementById('bookingForm').addEventListener('submit', async function
   this.reset();
 });
 
+setTimeout(() => {
+  window.location.href = whatsappURL;
+}, 100); // تأخير 0.1 ثانية
