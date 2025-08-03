@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
-import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
+import { getDatabase, ref, push, get } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
 
-// Firebase config
+// إعدادات Firebase الخاصة بيك
 const firebaseConfig = {
   apiKey: "AIzaSyDvdYelGHJPA49QsZ9wCaAyy9tT-eP3nrw",
   authDomain: "clinic-booking-eeaee.firebaseapp.com",
@@ -16,7 +16,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Form submit
 document.getElementById('bookingForm').addEventListener('submit', async function (e) {
   e.preventDefault();
 
@@ -31,9 +30,11 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     return;
   }
 
-  const bookingRef = ref(db, 'bookings/' + date + '/' + time);
+  status.textContent = "⏳ Checking availability...";
 
+  const bookingRef = ref(db, 'bookings/' + date + '/' + time);
   const snapshot = await get(bookingRef);
+
   if (snapshot.exists()) {
     status.textContent = "⚠️ This time is already booked.";
     return;
@@ -45,13 +46,3 @@ document.getElementById('bookingForm').addEventListener('submit', async function
     date: date,
     time: time
   });
-
-  // Open WhatsApp with details
-  const message = `Name: ${name}%0APhone: ${phone}%0ADate: ${date}%0ATime: ${time}`;
-  const whatsappURL = `https://wa.me/201010876605?text=${message}`;
-  window.open(whatsappURL, '_blank');
-
-  status.textContent = "✅ Booking confirmed!";
-  this.reset();
-});
-
