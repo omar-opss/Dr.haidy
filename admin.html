@@ -29,6 +29,7 @@
       padding: 6px 12px;
       border: none;
       cursor: pointer;
+      margin: 5px;
     }
     #loginForm {
       position: fixed;
@@ -57,6 +58,7 @@
 
   <div id="adminPanel">
     <h1>لوحة تحكم الأدمن</h1>
+    <button onclick="exportToExcel()">📥 تحميل الحجوزات Excel</button>
     <table id="bookingsTable">
       <thead>
         <tr>
@@ -73,6 +75,10 @@
     </table>
   </div>
 
+  <!-- مكتبة SheetJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -98,7 +104,7 @@
 
         snapshot.forEach(dateSnap => {
           const dateKey = dateSnap.key;
-          const timesSnap = dateSnap.val(); // ✅ ده كان ناقص
+          const timesSnap = dateSnap.val();
 
           for (let timeKey in timesSnap) {
             const timeGroup = timesSnap[timeKey];
@@ -128,6 +134,7 @@
       });
     }
 
+    // حذف الحجز
     window.deleteBookingByPath = function(date, time, bookingId) {
       const bookingRef = ref(database, `bookings/${date}/${time}/${bookingId}`);
       remove(bookingRef)
@@ -138,6 +145,7 @@
         });
     };
 
+    // تسجيل دخول الأدمن
     window.login = function() {
       const pass = document.getElementById("adminPass").value;
       if (pass === "admin2025") {
@@ -147,6 +155,42 @@
       } else {
         alert("كلمة السر غير صحيحة");
       }
+    };
+
+    // تصدير إلى Excel
+    window.exportToExcel = function () {
+      const data = [];
+      const bookingsRef = ref(database, 'bookings/');
+
+      onValue(bookingsRef, (snapshot) => {
+        snapshot.forEach(dateSnap => {
+          const dateKey = dateSnap.key;
+          const timesSnap = dateSnap.val();
+
+          for (let timeKey in timesSnap) {
+            const timeGroup = timesSnap[timeKey];
+
+            for (let bookingId in timeGroup) {
+              const booking = timeGroup[bookingId];
+
+              data.push({
+                "الاسم": booking.name || "—",
+                "رقم الهاتف": booking.phone || "—",
+                "التاريخ": booking.date || dateKey,
+                "الوقت": booking.time || timeKey
+              });
+            }
+          }
+        });
+
+        // تحويل إلى إكسل
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "الحجوزات");
+        XLSX.writeFile(workbook, "الحجوزات.xlsx");
+      }, {
+        onlyOnce: true
+      });
     };
   </script>
 </body>
