@@ -96,9 +96,38 @@ const firebaseConfig = {
   const bookingsRef = ref(database, 'bookings/');
   onValue(bookingsRef, (snapshot) => {
     tableBody.innerHTML = "";
-    snapshot.forEach(child => {
-      const data = child.val();
 
+    snapshot.forEach(dateSnap => {
+      const dateKey = dateSnap.key; // التاريخ زي 2025-05-07
+      const timesSnap = dateSnap.val();
+
+      for (let timeKey in timesSnap) {
+        const timeGroup = timesSnap[timeKey];
+
+        for (let bookingId in timeGroup) {
+          const data = timeGroup[bookingId];
+
+          const name = data.name || "—";
+          const phone = data.phone || "—";
+          const date = data.date || dateKey;
+          const time = data.time || timeKey;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${name}</td>
+            <td>${phone}</td>
+            <td>—</td> <!-- email مش موجود -->
+            <td>${date}</td>
+            <td>${time}</td>
+            <td>—</td> <!-- people مش موجود -->
+            <td><button onclick="deleteBookingByPath('${dateKey}', '${timeKey}', '${bookingId}')">🗑 حذف</button></td>
+          `;
+          tableBody.appendChild(tr);
+        }
+      }
+    });
+  });
+}
       const name = data.Name || data.name || "—";
       const phone = data.Phone || data.phone || "—";
       const email = data.Email || data.email || "—";
@@ -145,5 +174,6 @@ const firebaseConfig = {
 </body>
 
 </html>
+
 
 
