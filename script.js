@@ -1,141 +1,56 @@
- // 📅 إعدادات التقويم
-const calendarElement = document.getElementById("calendar");
-const nextBtn = document.getElementById("to-step-2");
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
 
-// التاريخ الحالي
-const today = new Date();
-const selectedMonth = 7; // أغسطس = 7 (من 0 إلى 11)
-const selectedYear = 2025;
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDvdYelGHJPA49QsZ9wCaAyy9tT-eP3nrw",
+  authDomain: "clinic-booking-eeaee.firebaseapp.com",
+  databaseURL: "https://clinic-booking-eeaee-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "clinic-booking-eeaee",
+  storageBucket: "clinic-booking-eeaee.appspot.com",
+  messagingSenderId: "21071960927",
+  appId: "1:21071960927:web:d46bea119060b4f046b4ea",
+  measurementId: "G-8H7KWF6Q09"
+};
 
-// 🧩 إنشاء التقويم
-function generateCalendar(month, year) {
-  calendarElement.innerHTML = "";
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-  const firstDay = new Date(year, month, 1).getDay(); // بداية الشهر
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+// Form submit
+document.getElementById('bookingForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
 
-  // أيام الأسبوع (اختياري لعرضها)
-  const daysOfWeek = ["S", "M", "T", "W", "T", "F", "S"];
-  daysOfWeek.forEach(day => {
-    const dayElement = document.createElement("div");
-    dayElement.textContent = day;
-    dayElement.style.fontWeight = "bold";
-    calendarElement.appendChild(dayElement);
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const date = document.getElementById('date').value;
+  const time = document.getElementById('time').value;
+  const status = document.getElementById('status');
+
+  if (!name || !phone || !date || !time) {
+    status.textContent = "Please fill all fields.";
+    return;
+  }
+
+  const bookingRef = ref(db, 'bookings/' + date + '/' + time);
+
+  const snapshot = await get(bookingRef);
+  if (snapshot.exists()) {
+    status.textContent = "⚠️ This time is already booked.";
+    return;
+  }
+
+  await push(bookingRef, {
+    name: name,
+    phone: phone,
+    date: date,
+    time: time
   });
 
-  // مسافات فارغة لأيام قبل بداية الشهر
-  for (let i = 0; i < firstDay; i++) {
-    const empty = document.createElement("div");
-    calendarElement.appendChild(empty);
-  }
+  // Open WhatsApp with details
+  const message = `Name: ${name}%0APhone: ${phone}%0ADate: ${date}%0ATime: ${time}`;
+  const whatsappURL = `https://wa.me/201010876605?text=${message}`;
+  window.open(whatsappURL, '_blank');
 
-  // إنشاء الأيام
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dateElement = document.createElement("div");
-    dateElement.classList.add("day");
-    dateElement.textContent = day;
-
-    const isPast =
-      year < today.getFullYear() ||
-      (year === today.getFullYear() && month < today.getMonth()) ||
-      (year === today.getFullYear() && month === today.getMonth() && day < today.getDate());
-
-    if (isPast) {
-      dateElement.classList.add("disabled");
-    } else {
-      dateElement.addEventListener("click", () => {
-        // إزالة التحديد السابق
-        document.querySelectorAll(".day").forEach(el => el.classList.remove("selected"));
-        // تمييز المختار
-        dateElement.classList.add("selected");
-        nextBtn.disabled = false;
-      });
-    }
-
-    calendarElement.appendChild(dateElement);
-  }
-}
-
-// عرض التقويم
-generateCalendar(selectedMonth, selectedYear);
-
-// 🔘 زر "Next"
-nextBtn.disabled = true;
-nextBtn.addEventListener("click", () => {
-  alert("تم اختيار التاريخ! الخطوة التالية: اختيار الوقت.");
-  // هنا لاحقًا هننقل المستخدم للخطوة 2
-});
-const step1 = document.getElementById("step-1");
-const step2 = document.getElementById("step-2");
-const timeGrid = document.getElementById("time-grid");
-
-// توليد الأوقات من 12:00 PM إلى 12:00 AM
-function generateTimeSlots() {
-  timeGrid.innerHTML = "";
-  const startHour = 12;
-  const endHour = 24;
-
-  for (let h = startHour; h < endHour; h++) {
-    const time1 = formatTime(h, 0);  // :00
-    const time2 = formatTime(h, 30); // :30
-
-    createTimeSlot(time1);
-    createTimeSlot(time2);
-  }
-}
-
-function formatTime(hour24, minute) {
-  const period = hour24 >= 12 ? "PM" : "AM";
-  let hour = hour24 % 12;
-  hour = hour === 0 ? 12 : hour;
-  const min = minute === 0 ? "00" : minute;
-  return `${hour}:${min} ${period}`;
-}
-
-function createTimeSlot(timeText) {
-  const slot = document.createElement("div");
-  slot.className = "time-slot";
-  slot.textContent = timeText;
-
-  slot.addEventListener("click", () => {
-    document.querySelectorAll(".time-slot").forEach(s => s.classList.remove("selected"));
-    slot.classList.add("selected");
-    toStep3Btn.disabled = false;
-  });
-
-  timeGrid.appendChild(slot);
-}
-
-// الانتقال من الخطوة 1 → 2
-nextBtn.addEventListener("click", () => {
-  step1.classList.add("hidden");
-  step2.classList.remove("hidden");
-  generateTimeSlots();
-});
-
-// 🕓 عرض الوقت والتاريخ في الفوتر
-function updateTime() {
-  const now = new Date();
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  const formatted = now.toLocaleDateString('en-US', options) + " – " + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  document.getElementById("system-time").textContent = formatted;
-}
-updateTime();
-setInterval(updateTime, 10000); // تحديث كل 10 ثوانٍ
-const navStep2 = document.getElementById("nav-step-2");
-const toStep3Btn = document.getElementById("to-step-3");
-const backToStep1Btn = document.getElementById("back-to-step-1");
-
-// عرض أزرار التنقل بعد الانتقال لخطوة الوقت
-nextBtn.addEventListener("click", () => {
-  document.querySelector(".navigation-buttons").classList.add("hidden");
-  navStep2.classList.remove("hidden");
-});
-
-// رجوع من خطوة 2 إلى 1
-backToStep1Btn.addEventListener("click", () => {
-  step2.classList.add("hidden");
-  step1.classList.remove("hidden");
-  navStep2.classList.add("hidden");
-  document.querySelector(".navigation-buttons").classList.remove("hidden");
+  status.textContent = "✅ Booking confirmed!";
+  this.reset();
 });
