@@ -54,3 +54,4 @@ document.getElementById('bookingForm').addEventListener('submit', async function
   status.textContent = "✅ Booking confirmed!";
   this.reset();
 });
+
