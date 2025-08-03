@@ -201,9 +201,35 @@ function login() {
     alert("كلمة السر غير صحيحة");
   }
 }
+    window.exportToExcel = function () {
+  const rows = [];
+  const headers = ["الاسم", "رقم الهاتف", "تاريخ", "وقت", "الحضور"];
+  rows.push(headers);
+
+  document.querySelectorAll("#tableBody tr").forEach(row => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length >= 5) {
+      const rowData = [
+        cells[0].innerText,  // الاسم
+        cells[1].innerText,  // رقم الهاتف
+        cells[3].innerText,  // التاريخ
+        cells[4].innerText,  // الوقت
+        cells[5].innerText   // الحضور
+      ];
+      rows.push(rowData);
+    }
+  });
+
+  const worksheet = XLSX.utils.aoa_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
+
+  XLSX.writeFile(workbook, "الحجوزات.xlsx");
+};
 
 window.login = login;
   </script>
+
 
 
 
