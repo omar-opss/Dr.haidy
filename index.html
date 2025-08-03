@@ -15,29 +15,18 @@
     <input type="tel" id="phone" placeholder="Phone Number" required />
     <input type="date" id="date" required />
 
-    <select id="time" required>
-      <option value="">Choose Time</option>
-      <option value="10:00 AM">10:00 AM</option>
-      <option value="11:00 AM">11:00 AM</option>
-      <option value="12:00 PM">12:00 PM</option>
-      <option value="1:00 PM">1:00 PM</option>
-      <option value="2:00 PM">2:00 PM</option>
-      <option value="3:00 PM">3:00 PM</option>
-      <option value="4:00 PM">4:00 PM</option>
-      <option value="5:00 PM">5:00 PM</option>
-      <option value="6:00 PM">6:00 PM</option>
-      <option value="7:00 PM">7:00 PM</option>
-      <option value="8:00 PM">8:00 PM</option>
-    </select>
+    <div class="time-range">
+      <label for="start-time">From:</label>
+      <input type="time" id="start-time" required />
+
+      <label for="end-time">To:</label>
+      <input type="time" id="end-time" required />
+    </div>
 
     <button type="submit">Confirm Booking</button>
     <p id="status"></p>
   </form>
 
-<script type="module" src="main.js"></script>
-  
+  <script type="module" src="main.js"></script>
 </body>
 </html>
-
-
-
