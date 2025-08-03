@@ -66,7 +66,7 @@
 <body>
   <div id="loginForm">
     <h2>تسجيل دخول الأدمن</h2>
-    <input type="password" id="adminpass" placeholder="كلمة السر" />
+    <input type="password" id="adminPass" placeholder="كلمة السر" />
     <button onclick="login()">دخول</button>
   </div>
 
@@ -190,19 +190,22 @@
       });
     };
 
-    window.login = function() {
-      const pass = document.getElementById("adminPass").value;
-      if (pass === "omar2025") {
-        document.getElementById("loginForm").style.display = "none";
-        document.getElementById("adminPanel").style.display = "block";
-        fetchBookings();
-      } else {
-        alert("كلمة السر غير صحيحة");
-      }
-    };
+function login() {
+  const pass = document.getElementById("adminPass").value;
+  if (pass === "omar2025") {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    fetchBookings();
+  } else {
+    alert("كلمة السر غير صحيحة");
+  }
+}
+
+window.login = login; // 
   </script>
 </body>
 </html>
+
 
 
 
