@@ -15,20 +15,32 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-document.getElementById('bookingForm').addEventListener('submit', async function (e) {
+document.getElementById("bookingForm").addEventListener("submit", function (e) {
   e.preventDefault();
 
-  const name = document.getElementById('name').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const date = document.getElementById('date').value;
-  const time = document.getElementById('time').value;
-  const status = document.getElementById('status');
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const date = document.getElementById("date").value;
+  const start = document.getElementById("start-time").value;
+  const end = document.getElementById("end-time").value;
 
-  if (!name || !phone || !date || !time) {
+  const status = document.getElementById("status");
+
+  if (!name || !phone || !date || !start || !end) {
     status.textContent = "Please fill all fields.";
     return;
   }
 
+  if (start >= end) {
+    status.textContent = "End time must be after start time.";
+    return;
+  }
+
+  const period = `${start} - ${end}`;
+
+  // مثال فقط: طباعة النتيجة (تقدر تستبدلها بحفظ في Firebase أو إرسال واتساب)
+  status.textContent = `Booking confirmed for ${name} on ${date} from ${period}`;
+});
   status.textContent = "⏳ Checking availability...";
 
   const bookingRef = ref(db, 'bookings/' + date + '/' + time);
@@ -53,4 +65,5 @@ document.getElementById('bookingForm').addEventListener('submit', async function
   window.open(whatsappURL, '_blank');
 
   this.reset();
+
 });
