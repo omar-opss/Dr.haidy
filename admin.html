@@ -97,10 +97,6 @@ const firebaseConfig = {
   onValue(bookingsRef, (snapshot) => {
     tableBody.innerHTML = "";
 
-    snapshot.forEach(dateSnap => {
-      const dateKey = dateSnap.key; // التاريخ زي 2025-05-07
-      const timesSnap = dateSnap.val();
-
       for (let timeKey in timesSnap) {
         const timeGroup = timesSnap[timeKey];
 
@@ -153,6 +149,7 @@ const firebaseConfig = {
 </body>
 
 </html>
+
 
 
 
