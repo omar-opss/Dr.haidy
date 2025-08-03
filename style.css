@@ -49,3 +49,26 @@ body {
   text-align: center;
   color: #ff6600;
 }
+
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 20px;
+  background-color: #111;
+  border-bottom: 1px solid #333;
+}
+
+.login-button {
+  background-color: orange;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.login-button:hover {
+  background-color: darkorange;
+}
