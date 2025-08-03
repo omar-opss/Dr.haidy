@@ -29,7 +29,7 @@
       padding: 6px 12px;
       border: none;
       cursor: pointer;
-      margin: 5px;
+      margin: 3px;
     }
     #loginForm {
       position: fixed;
@@ -47,6 +47,20 @@
     #adminPanel {
       display: none;
     }
+    .stats {
+      margin-bottom: 20px;
+      background: #1e1e1e;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      gap: 20px;
+      justify-content: space-around;
+    }
+    .stats div {
+      background-color: #2c2c2c;
+      padding: 10px;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
@@ -58,16 +72,21 @@
 
   <div id="adminPanel">
     <h1>لوحة تحكم الأدمن</h1>
-    <button onclick="exportToExcel()">📥 تحميل الحجوزات Excel</button>
+    <button onclick="fetchBookings()">🔄 تحديث البيانات</button>
+    <div class="stats" id="stats">
+      <div>📋 إجمالي الحجوزات: <span id="totalBookings">0</span></div>
+      <div>⏰ أكثر وقت حجز: <span id="peakTime">—</span></div>
+      <div>📅 أيام الحجز: <span id="bookingDays">0</span></div>
+    </div>
     <table id="bookingsTable">
       <thead>
         <tr>
           <th>الاسم</th>
           <th>رقم الهاتف</th>
-          <th>-</th>
+          <th>تأكيد</th>
           <th>التاريخ</th>
           <th>الوقت</th>
-          <th>-</th>
+          <th>الحضور</th>
           <th>حذف</th>
         </tr>
       </thead>
@@ -75,13 +94,11 @@
     </table>
   </div>
 
-  <!-- مكتبة SheetJS -->
+  <!-- Firebase + SheetJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDvdYelGHJPA49QsZ9wCaAyy9tT-eP3nrw",
@@ -102,8 +119,13 @@
       onValue(bookingsRef, (snapshot) => {
         tableBody.innerHTML = "";
 
+        let total = 0;
+        let allTimes = [];
+        let allDays = new Set();
+
         snapshot.forEach(dateSnap => {
           const dateKey = dateSnap.key;
+          allDays.add(dateKey);
           const timesSnap = dateSnap.val();
 
           for (let timeKey in timesSnap) {
@@ -111,41 +133,63 @@
 
             for (let bookingId in timeGroup) {
               const data = timeGroup[bookingId];
-
               const name = data.name || "—";
               const phone = data.phone || "—";
               const date = data.date || dateKey;
               const time = data.time || timeKey;
+              const attended = data.attended ? "✔️" : "❌";
+
+              total++;
+              allTimes.push(time);
 
               const tr = document.createElement("tr");
               tr.innerHTML = `
                 <td>${name}</td>
                 <td>${phone}</td>
-                <td>—</td>
+                <td><button onclick="sendWhatsapp('${phone}', '${name}', '${date}', '${time}')">📤</button></td>
                 <td>${date}</td>
                 <td>${time}</td>
-                <td>—</td>
-                <td><button onclick="deleteBookingByPath('${dateKey}', '${timeKey}', '${bookingId}')">🗑 حذف</button></td>
+                <td><button onclick="toggleAttended('${dateKey}', '${timeKey}', '${bookingId}', ${data.attended ? 'false' : 'true'})">${attended}</button></td>
+                <td><button onclick="deleteBooking('${dateKey}', '${timeKey}', '${bookingId}')">🗑</button></td>
               `;
               tableBody.appendChild(tr);
             }
           }
         });
+
+        // Show stats
+        document.getElementById("totalBookings").innerText = total;
+        document.getElementById("bookingDays").innerText = allDays.size;
+
+        const timeCounts = {};
+        allTimes.forEach(t => timeCounts[t] = (timeCounts[t] || 0) + 1);
+        const peak = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0];
+        document.getElementById("peakTime").innerText = peak ? `${peak[0]} (${peak[1]})` : "—";
+      }, {
+        onlyOnce: true
       });
     }
 
-    // حذف الحجز
-    window.deleteBookingByPath = function(date, time, bookingId) {
-      const bookingRef = ref(database, `bookings/${date}/${time}/${bookingId}`);
-      remove(bookingRef)
-        .then(() => alert("تم حذف الحجز بنجاح"))
-        .catch(err => {
-          alert("حدث خطأ أثناء الحذف");
-          console.error(err);
-        });
+    window.sendWhatsapp = function(phone, name, date, time) {
+      const msg = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} الساعة ${time} في عيادة دكتورة أسماء.`;
+      const url = `https://wa.me/${phone.replace(/^0/, "2")}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
     };
 
-    // تسجيل دخول الأدمن
+    window.toggleAttended = function(date, time, id, newState) {
+      const bookingRef = ref(database, `bookings/${date}/${time}/${id}`);
+      update(bookingRef, { attended: newState });
+      fetchBookings();
+    };
+
+    window.deleteBooking = function(date, time, id) {
+      const bookingRef = ref(database, `bookings/${date}/${time}/${id}`);
+      remove(bookingRef).then(() => {
+        alert("تم حذف الحجز");
+        fetchBookings();
+      });
+    };
+
     window.login = function() {
       const pass = document.getElementById("adminPass").value;
       if (pass === "admin2025") {
@@ -155,42 +199,6 @@
       } else {
         alert("كلمة السر غير صحيحة");
       }
-    };
-
-    // تصدير إلى Excel
-    window.exportToExcel = function () {
-      const data = [];
-      const bookingsRef = ref(database, 'bookings/');
-
-      onValue(bookingsRef, (snapshot) => {
-        snapshot.forEach(dateSnap => {
-          const dateKey = dateSnap.key;
-          const timesSnap = dateSnap.val();
-
-          for (let timeKey in timesSnap) {
-            const timeGroup = timesSnap[timeKey];
-
-            for (let bookingId in timeGroup) {
-              const booking = timeGroup[bookingId];
-
-              data.push({
-                "الاسم": booking.name || "—",
-                "رقم الهاتف": booking.phone || "—",
-                "التاريخ": booking.date || dateKey,
-                "الوقت": booking.time || timeKey
-              });
-            }
-          }
-        });
-
-        // تحويل إلى إكسل
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "الحجوزات");
-        XLSX.writeFile(workbook, "الحجوزات.xlsx");
-      }, {
-        onlyOnce: true
-      });
     };
   </script>
 </body>
