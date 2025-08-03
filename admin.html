@@ -1,235 +1,131 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-  <meta charset="UTF-8" />
-  <title>لوحة تحكم الأدمن</title>
-  <style>
-    body {
-      background-color: #121212;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #444;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background-color: #ff5722;
-    }
-    button {
-      background-color: #ff5722;
-      color: white;
-      padding: 6px 12px;
-      border: none;
-      cursor: pointer;
-      margin: 3px;
-    }
-    #loginForm {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #1e1e1e;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px #000;
-      display: flex;
-      flex-direction: column;
-      width: 300px;
-    }
-    #adminPanel {
-      display: none;
-    }
-    .stats {
-      margin-bottom: 20px;
-      background: #1e1e1e;
-      padding: 10px;
-      border-radius: 8px;
-      display: flex;
-      gap: 20px;
-      justify-content: space-around;
-    }
-    .stats div {
-      background-color: #2c2c2c;
-      padding: 10px;
-      border-radius: 6px;
-    }
-  </style>
-</head>
-<body>
-  <div id="loginForm">
-    <h2>تسجيل دخول الأدمن</h2>
-    <input type="password" id="adminPass" placeholder="كلمة السر" />
-    <button onclick="login()">دخول</button>
-  </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  <div id="adminPanel">
-    <h1>لوحة تحكم الأدمن</h1>
-    <button onclick="fetchBookings()">🔄 تحديث البيانات</button>
-    <button onclick="exportToExcel()">📥 تحميل Excel</button>
-    <div class="stats" id="stats">
-      <div>📋 إجمالي الحجوزات: <span id="totalBookings">0</span></div>
-      <div>⏰ أكثر وقت حجز: <span id="peakTime">—</span></div>
-      <div>📅 أيام الحجز: <span id="bookingDays">0</span></div>
-    </div>
-    <table id="bookingsTable">
-      <thead>
-        <tr>
-          <th>الاسم</th>
-          <th>رقم الهاتف</th>
-          <th>تأكيد</th>
-          <th>التاريخ</th>
-          <th>الوقت</th>
-          <th>الحضور</th>
-          <th>حذف</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDvdYelGHJPA49QsZ9wCaAyy9tT-eP3nrw",
+    authDomain: "clinic-booking-eeaee.firebaseapp.com",
+    databaseURL: "https://clinic-booking-eeaee-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "clinic-booking-eeaee",
+    storageBucket: "clinic-booking-eeaee.appspot.com",
+    messagingSenderId: "21071960927",
+    appId: "1:21071960927:web:d46bea119060b4f046b4ea"
+  };
 
-  <!-- Firebase + SheetJS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const tableBody = document.getElementById("tableBody");
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDvdYelGHJPA49QsZ9wCaAyy9tT-eP3nrw",
-      authDomain: "clinic-booking-eeaee.firebaseapp.com",
-      databaseURL: "https://clinic-booking-eeaee-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "clinic-booking-eeaee",
-      storageBucket: "clinic-booking-eeaee.appspot.com",
-      messagingSenderId: "21071960927",
-      appId: "1:21071960927:web:d46bea119060b4f046b4ea"
-    };
+  function fetchBookings() {
+    const bookingsRef = ref(database, 'bookings/');
+    onValue(bookingsRef, (snapshot) => {
+      tableBody.innerHTML = "";
 
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-    const tableBody = document.getElementById("tableBody");
+      let total = 0;
+      let allTimes = [];
+      let allDays = new Set();
 
-    function fetchBookings() {
-      const bookingsRef = ref(database, 'bookings/');
-      onValue(bookingsRef, (snapshot) => {
-        tableBody.innerHTML = "";
+      snapshot.forEach(dateSnap => {
+        const dateKey = dateSnap.key;
+        allDays.add(dateKey);
+        const timesSnap = dateSnap.val();
 
-        let total = 0;
-        let allTimes = [];
-        let allDays = new Set();
+        for (let timeKey in timesSnap) {
+          const timeGroup = timesSnap[timeKey];
 
-        snapshot.forEach(dateSnap => {
-          const dateKey = dateSnap.key;
-          allDays.add(dateKey);
-          const timesSnap = dateSnap.val();
+          for (let bookingId in timeGroup) {
+            const data = timeGroup[bookingId];
+            const name = data.name || "—";
+            const phone = data.phone || "—";
+            const date = data.date || dateKey;
+            const time = data.time || timeKey;
+            const attended = data.attended ? "✔️" : "❌";
 
-          for (let timeKey in timesSnap) {
-            const timeGroup = timesSnap[timeKey];
+            total++;
+            allTimes.push(time);
 
-            for (let bookingId in timeGroup) {
-              const data = timeGroup[bookingId];
-              const name = data.name || "—";
-              const phone = data.phone || "—";
-              const date = data.date || dateKey;
-              const time = data.time || timeKey;
-              const attended = data.attended ? "✔️" : "❌";
-
-              total++;
-              allTimes.push(time);
-
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${name}</td>
-                <td>${phone}</td>
-                <td><button onclick="sendWhatsapp('${phone}', '${name}', '${date}', '${time}')">📤</button></td>
-                <td>${date}</td>
-                <td>${time}</td>
-                <td><button onclick="toggleAttended('${dateKey}', '${timeKey}', '${bookingId}', ${data.attended ? 'false' : 'true'})">${attended}</button></td>
-                <td><button onclick="deleteBooking('${dateKey}', '${timeKey}', '${bookingId}')">🗑</button></td>
-              `;
-              tableBody.appendChild(tr);
-            }
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${name}</td>
+              <td>${phone}</td>
+              <td><button onclick="sendWhatsapp('${phone}', '${name}', '${date}', '${time}')">📤</button></td>
+              <td>${date}</td>
+              <td>${time}</td>
+              <td><button onclick="toggleAttended('${dateKey}', '${timeKey}', '${bookingId}', ${data.attended ? 'false' : 'true'})">${attended}</button></td>
+              <td><button onclick="deleteBooking('${dateKey}', '${timeKey}', '${bookingId}')">🗑</button></td>
+            `;
+            tableBody.appendChild(tr);
           }
-        });
-
-        // Show stats
-        document.getElementById("totalBookings").innerText = total;
-        document.getElementById("bookingDays").innerText = allDays.size;
-
-        const timeCounts = {};
-        allTimes.forEach(t => timeCounts[t] = (timeCounts[t] || 0) + 1);
-        const peak = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0];
-        document.getElementById("peakTime").innerText = peak ? `${peak[0]} (${peak[1]})` : "—";
-      }, {
-        onlyOnce: true
+        }
       });
-    }
 
-    window.sendWhatsapp = function(phone, name, date, time) {
-      const msg = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} الساعة ${time} في عيادة دكتورة أسماء.`;
-      const url = `https://wa.me/${phone.replace(/^0/, "2")}?text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank');
-    };
+      document.getElementById("totalBookings").innerText = total;
+      document.getElementById("bookingDays").innerText = allDays.size;
 
-    window.toggleAttended = function(date, time, id, newState) {
-      const bookingRef = ref(database, `bookings/${date}/${time}/${id}`);
-      update(bookingRef, { attended: newState });
-      fetchBookings();
-    };
-
-    window.deleteBooking = function(date, time, id) {
-      const bookingRef = ref(database, `bookings/${date}/${time}/${id}`);
-      remove(bookingRef).then(() => {
-        alert("تم حذف الحجز");
-        fetchBookings();
-      });
-    };
-
-function login() {
-  const pass = document.getElementById("adminPass").value;
-  if (pass === "omar2025") {
-    document.getElementById("loginForm").style.display = "none";
-    document.getElementById("adminPanel").style.display = "block";
-    fetchBookings();
-  } else {
-    alert("كلمة السر غير صحيحة");
+      const timeCounts = {};
+      allTimes.forEach(t => timeCounts[t] = (timeCounts[t] || 0) + 1);
+      const peak = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0];
+      document.getElementById("peakTime").innerText = peak ? `${peak[0]} (${peak[1]})` : "—";
+    });
   }
-}
-    window.exportToExcel = function () {
-  const rows = [];
-  const headers = ["الاسم", "رقم الهاتف", "تاريخ", "وقت", "الحضور"];
-  rows.push(headers);
 
-  document.querySelectorAll("#tableBody tr").forEach(row => {
-    const cells = row.querySelectorAll("td");
-    if (cells.length >= 5) {
-      const rowData = [
-        cells[0].innerText,  // الاسم
-        cells[1].innerText,  // رقم الهاتف
-        cells[3].innerText,  // التاريخ
-        cells[4].innerText,  // الوقت
-        cells[5].innerText   // الحضور
-      ];
-      rows.push(rowData);
+  window.sendWhatsapp = function(phone, name, date, time) {
+    const internationalPhone = phone.startsWith("0") ? "2" + phone.slice(1) : phone;
+    const msg = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} الساعة ${time} في عيادة دكتورة أسماء.`;
+    const url = `https://wa.me/${internationalPhone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+  };
+
+  window.toggleAttended = function(date, time, id, newState) {
+    const bookingRef = ref(database, `bookings/${date}/${time}/${id}`);
+    update(bookingRef, { attended: newState });
+    fetchBookings();
+  };
+
+  window.deleteBooking = function(date, time, id) {
+    const bookingRef = ref(database, `bookings/${date}/${time}/${id}`);
+    remove(bookingRef).then(() => {
+      alert("تم حذف الحجز");
+      fetchBookings();
+    });
+  };
+
+  function login() {
+    const pass = document.getElementById("adminPass").value;
+    if (pass === "omar2025") {
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+      fetchBookings();
+    } else {
+      alert("كلمة السر غير صحيحة");
     }
-  });
+  }
 
-  const worksheet = XLSX.utils.aoa_to_sheet(rows);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
+  window.login = login;
 
-  XLSX.writeFile(workbook, "الحجوزات.xlsx");
-};
+  window.exportToExcel = function () {
+    const rows = [];
+    const headers = ["الاسم", "رقم الهاتف", "تاريخ", "وقت", "الحضور"];
+    rows.push(headers);
 
-window.login = login;
-  </script>
+    document.querySelectorAll("#tableBody tr").forEach(row => {
+      const cells = row.querySelectorAll("td");
+      if (cells.length >= 5) {
+        const rowData = [
+          cells[0].innerText,
+          cells[1].innerText,
+          cells[3].innerText,
+          cells[4].innerText,
+          cells[5].innerText
+        ];
+        rows.push(rowData);
+      }
+    });
 
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
 
-
-
+    XLSX.writeFile(workbook, "الحجوزات.xlsx");
+  };
+</script>
