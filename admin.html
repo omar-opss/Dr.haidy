@@ -128,28 +128,7 @@ const firebaseConfig = {
     });
   });
 }
-      const name = data.Name || data.name || "—";
-      const phone = data.Phone || data.phone || "—";
-      const email = data.Email || data.email || "—";
-      const date = data.Date || data.date || "—";
-      const time = data.Time || data.time || "—";
-      const people = data.People || data.people || "—";
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${name}</td>
-        <td>${phone}</td>
-        <td>-</td>
-        <td>${date}</td>
-        <td>${time}</td>
-        <td>-</td>
-        <td><button onclick="deleteBooking('${child.key}')">🗑 حذف</button></td>
-      `;
-      tableBody.appendChild(tr);
-    });
-  });
-}
-
+    
    window.deleteBookingByPath = function(date, time, bookingId) {
   const bookingRef = ref(database, `bookings/${date}/${time}/${bookingId}`);
   remove(bookingRef)
@@ -174,6 +153,7 @@ const firebaseConfig = {
 </body>
 
 </html>
+
 
 
 
