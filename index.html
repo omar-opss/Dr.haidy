@@ -1,58 +1,21 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title> Dr . HAIDY | for reservation</title>
+  <title>Clinic Booking</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- 🟧 Header -->
-  <header class="main-header">
-    <div class="logo">Dr . HAIDY</div>
-    <button class="login-btn">Login</button>
-  </header>
-
-  <!-- 🟠 Progress Bar -->
-  <div class="progress-bar">
-    <div class="step active">1</div>
-    <div class="line"></div>
-    <div class="step">2</div>
-    <div class="line"></div>
-    <div class="step">3</div>
-  </div>
-
-  <!-- 📅 Step 1: Pick a Date -->
-  <section class="step-content" id="step-1">
-    <h2>Step 1: Pick a Date</h2>
-    <div class="calendar-container">
-      <!-- سيتم تعبئة التقويم عبر JavaScript -->
-      <div id="calendar"></div>
-    </div>
-  </section>
-
-  <!-- 🔘 Navigation Buttons -->
-  <div class="navigation-buttons">
-    <button class="btn back-btn" disabled>Back</button>
-    <button class="btn next-btn" id="to-step-2">Next</button>
-  </div>
-
-  <!-- 🔻 Footer -->
-  <footer>
-    <div id="system-time"></div>
-    <div class="copyright">© 2025 dev.rift</div>
-  </footer>
-
-  <script src="script.js"></script>
-</body>
-</html>
-<form action="submit_booking.php" method="POST">
+  <form id="bookingForm" class="booking-form">
     <h2>Book Appointment</h2>
-    <input type="text" name="name" placeholder="Your Name" required />
-    <input type="tel" name="phone" placeholder="Phone Number" required />
-    <input type="date" name="date" required />
-    <select name="time" required>
+
+    <input type="text" id="name" placeholder="Your Name" required />
+    <input type="tel" id="phone" placeholder="Phone Number" required />
+    <input type="date" id="date" required />
+
+    <select id="time" required>
       <option value="">Choose Time</option>
       <option value="10:00 AM">10:00 AM</option>
       <option value="11:00 AM">11:00 AM</option>
@@ -66,12 +29,12 @@
       <option value="7:00 PM">7:00 PM</option>
       <option value="8:00 PM">8:00 PM</option>
     </select>
+
     <button type="submit">Confirm Booking</button>
+    <p id="status"></p>
   </form>
-<!-- 🔘 Navigation Buttons for Step 2 -->
-<div class="navigation-buttons hidden" id="nav-step-2">
-  <button class="btn back-btn" id="back-to-step-1">Back</button>
-  <button class="btn next-btn" id="to-step-3" disabled>Next</button>
 
-</div>
+  <script type="module" src="app.js"></script>
 
+</body>
+</html>
