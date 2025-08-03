@@ -5,28 +5,81 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Clinic Booking</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* الشريط العلوي وزر Login */
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px 20px;
+      background-color: #111;
+    }
+
+    .login-button {
+      background-color: orange;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .login-button:hover {
+      background-color: darkorange;
+    }
+
+    /* تنسيق نموذج الحجز (اختياري تحسيني) */
+    .booking-form {
+      max-width: 400px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #222;
+      color: #fff;
+      border-radius: 8px;
+    }
+
+    .booking-form input,
+    .booking-form button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+    }
+
+    .booking-form input {
+      background-color: #333;
+      color: #fff;
+    }
+
+    .booking-form button {
+      background-color: orange;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .booking-form button:hover {
+      background-color: darkorange;
+    }
+
+    .time-range label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    #status {
+      margin-top: 10px;
+      color: lightgreen;
+    }
+  </style>
 </head>
 <body>
 
-  <form id="bookingForm" class="booking-form">
-    <h2>Book Appointment</h2>
+  <!-- الشريط العلوي -->
+  <div class="top-bar">
+    <a href="admin.html" class="login-button">Login</a>
+  </div>
 
-    <input type="text" id="name" placeholder="Your Name" required />
-    <input type="tel" id="phone" placeholder="Phone Number" required />
-    <input type="date" id="date" required />
-
-    <div class="time-range">
-      <label for="start-time">From:</label>
-      <input type="time" id="start-time" required />
-
-      <label for="end-time">To:</label>
-      <input type="time" id="end-time" required />
-    </div>
-
-    <button type="submit">Confirm Booking</button>
-    <p id="status"></p>
-  </form>
-
-  <script type="module" src="main.js"></script>
-</body>
-</html>
+  <!--
