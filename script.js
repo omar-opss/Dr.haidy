@@ -49,8 +49,9 @@ document.getElementById('bookingForm').addEventListener('submit', async function
   status.textContent = "✅ Booking confirmed!";
 
   const message = `Name: ${name}%0APhone: ${phone}%0ADate: ${date}%0ATime: ${time}`;
-  const whatsappURL = `https://wa.me/201012345678?text=${message}`;
+  const whatsappURL = `https://wa.me/201010876605?text=${message}`;
   window.open(whatsappURL, '_blank');
 
   this.reset();
 });
+
