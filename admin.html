@@ -93,25 +93,25 @@ const firebaseConfig = {
     const tableBody = document.getElementById("tableBody");
 
     function fetchBookings() {
-      const bookingsRef = ref(database, 'bookings/');
-      onValue(bookingsRef, (snapshot) => {
-        tableBody.innerHTML = "";
-        snapshot.forEach(child => {
-          const data = child.val();
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${data.name}</td>
-            <td>${data.phone}</td>
-            <td>${data.email}</td>
-            <td>${data.date}</td>
-            <td>${data.time}</td>
-            <td>${data.people}</td>
-            <td><button onclick="deleteBooking('${child.key}')">🗑 حذف</button></td>
-          `;
-          tableBody.appendChild(tr);
-        });
-      });
-    }
+  const bookingsRef = ref(database, 'bookings/');
+  onValue(bookingsRef, (snapshot) => {
+    tableBody.innerHTML = "";
+    snapshot.forEach(child => {
+      const data = child.val();
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${data.Name || "—"}</td>
+        <td>${data.Phone || "—"}</td>
+        <td>—</td> <!-- email مش موجود -->
+        <td>${data.Date || "—"}</td>
+        <td>${data.Time || "—"}</td>
+        <td>—</td> <!-- people مش موجود -->
+        <td><button onclick="deleteBooking('${child.key}')">🗑 حذف</button></td>
+      `;
+      tableBody.appendChild(tr);
+    });
+  });
+}
 
     window.deleteBooking = function(key) {
       const bookingRef = ref(database, 'bookings/' + key);
@@ -135,4 +135,5 @@ const firebaseConfig = {
     };
   </script>
 </body>
+
 </html>
