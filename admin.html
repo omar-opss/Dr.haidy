@@ -72,7 +72,7 @@
 
   <div id="adminPanel">
     <h1>لوحة تحكم الأدمن</h1>
-    <button id="refreshBtn">🔄 تحديث البيانات</button>
+    <button onclick="fetchBookings()">🔄 تحديث البيانات</button>
     <button onclick="exportToExcel()">📥 تحميل Excel</button>
     <div class="stats" id="stats">
       <div>📋 إجمالي الحجوزات: <span id="totalBookings">0</span></div>
@@ -255,3 +255,4 @@
   </script>
 </body>
 </html>
+
