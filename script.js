@@ -45,16 +45,17 @@ function fetchBookings() {
           const name = data.name || "—";
           const phone = data.phone || "—";
           const date = data.date || dateKey;
+          const rawTime = data.time || timeKey;
 
-          let rawTime = data.time || timeKey;
-          let time = rawTime.includes(" - ")
-            ? rawTime.split(" - ").map(convertTo12Hour).join(" - ")
-            : convertTo12Hour(rawTime);
+          let time;
+          if (rawTime.includes(" - ")) {
+            const [start, end] = rawTime.split(" - ");
+            time = `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
+          } else {
+            time = convertTo12Hour(rawTime);
+          }
 
           const attended = data.attended ? "✔️" : "❌";
-
-          total++;
-          allTimes.push(time);
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
@@ -67,6 +68,8 @@ function fetchBookings() {
             <td><button onclick="deleteBooking('${dateKey}', '${timeKey}', '${bookingId}')">🗑</button></td>
           `;
           tableBody.appendChild(tr);
+          total++;
+          allTimes.push(time);
         }
       }
     });
@@ -78,9 +81,18 @@ function fetchBookings() {
     allTimes.forEach(t => timeCounts[t] = (timeCounts[t] || 0) + 1);
     const peak = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0];
     document.getElementById("peakTime").innerText = peak ? `${peak[0]} (${peak[1]})` : "—";
-  }, {
-    onlyOnce: true
-  });
+  }, { onlyOnce: true });
+}
+
+function login() {
+  const pass = document.getElementById("adminPass").value;
+  if (pass === "omar2025") {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    fetchBookings();
+  } else {
+    alert("كلمة السر غير صحيحة");
+  }
 }
 
 function sendWhatsapp(phone, name, date, time) {
@@ -103,20 +115,38 @@ function deleteBooking(date, time, id) {
   });
 }
 
-function login() {
-  const pass = document.getElementById("adminPass").value;
-  if (pass === "omar2025") {
-    document.getElementById("loginForm").style.display = "none";
-    document.getElementById("adminPanel").style.display = "block";
-    fetchBookings();
-  } else {
-    alert("كلمة السر غير صحيحة");
-  }
+function exportToExcel() {
+  const rows = [];
+  const headers = ["الاسم", "رقم الهاتف", "تاريخ", "وقت", "الحضور"];
+  rows.push(headers);
+
+  document.querySelectorAll("#tableBody tr").forEach(row => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length >= 5) {
+      const rowData = [
+        cells[0].innerText,
+        cells[1].innerText,
+        cells[3].innerText,
+        cells[4].innerText,
+        cells[5].innerText
+      ];
+      rows.push(rowData);
+    }
+  });
+
+  const worksheet = XLSX.utils.aoa_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
+  XLSX.writeFile(workbook, "الحجوزات.xlsx");
 }
 
-// لازم نعرّفهم في window عشان الأزرار تشتغل
+// تسجيل الدوال في window علشان تشتغل في HTML
+window.login = login;
 window.fetchBookings = fetchBookings;
 window.sendWhatsapp = sendWhatsapp;
 window.toggleAttended = toggleAttended;
 window.deleteBooking = deleteBooking;
-window.login = login;
+window.exportToExcel = exportToExcel;
+
+// زر التحديث
+document.getElementById("refreshBtn").addEventListener("click", fetchBookings);
