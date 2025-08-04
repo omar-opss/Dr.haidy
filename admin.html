@@ -146,8 +146,22 @@
               const phone = data.phone || "—";
               const date = data.date || dateKey;
               let rawTime = data.time || timeKey;
-              let time = rawTime;
+let time = rawTime;
 
+function convertTo12Hour(time24) {
+  const [hourStr, minute] = time24.split(":");
+  let hour = parseInt(hourStr);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12;
+  return `${hour}:${minute} ${ampm}`;
+}
+
+if (rawTime.includes(" - ")) {
+  const [start, end] = rawTime.split(" - ");
+  time = `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
+} else {
+  time = convertTo12Hour(rawTime);
+}
               // ⏰ تحويل الوقت إلى 12h
               if (rawTime.includes(" - ")) {
                 const [start, end] = rawTime.split(" - ");
@@ -249,3 +263,4 @@
   </script>
 </body>
 </html>
+
