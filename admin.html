@@ -126,8 +126,8 @@
     function fetchBookings() {
       const bookingsRef = ref(database, 'bookings/');
       onValue(bookingsRef, (snapshot) => {
-        tableBody.innerHTML = "";
     window.fetchBookings = fetchBookings;
+        tableBody.innerHTML = "";
         
 
         let total = 0;
@@ -265,6 +265,7 @@ window.login = login;
   </script>
 </body>
 </html>
+
 
 
 
