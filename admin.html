@@ -114,41 +114,7 @@
     const database = getDatabase(app);
     const tableBody = document.getElementById("tableBody");
 
-    // 🔁 تحويل الوقت من 24h إلى 12h بصيغة AM/PM
-    function convertTo12Hour(time24) {
-      const [hourStr, minute] = time24.split(":");
-      let hour = parseInt(hourStr);
-      const ampm = hour >= 12 ? "PM" : "AM";
-      hour = hour % 12 || 12;
-      return `${hour}:${minute} ${ampm}`;
-    }
-
-    function fetchBookings() {
-      const bookingsRef = ref(database, 'bookings/');
-      onValue(bookingsRef, (snapshot) => {
-        tableBody.innerHTML = "";
-        
-
-        let total = 0;
-        let allTimes = [];
-        let allDays = new Set();
-
-        snapshot.forEach(dateSnap => {
-          const dateKey = dateSnap.key;
-          allDays.add(dateKey);
-          const timesSnap = dateSnap.val();
-
-          for (let timeKey in timesSnap) {
-            const timeGroup = timesSnap[timeKey];
-
-            for (let bookingId in timeGroup) {
-              const data = timeGroup[bookingId];
-              const name = data.name || "—";
-              const phone = data.phone || "—";
-              const date = data.date || dateKey;
-              let rawTime = data.time || timeKey;
-let time = rawTime;
-
+   // 🕒 دالة لتحويل الوقت من 24h إلى 12h
 function convertTo12Hour(time24) {
   const [hourStr, minute] = time24.split(":");
   let hour = parseInt(hourStr);
@@ -157,39 +123,73 @@ function convertTo12Hour(time24) {
   return `${hour}:${minute} ${ampm}`;
 }
 
-if (rawTime.includes(" - ")) {
-  const [start, end] = rawTime.split(" - ");
-  time = `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
-} else {
-  time = convertTo12Hour(rawTime);
-}
-              // ⏰ تحويل الوقت إلى 12h
-              if (rawTime.includes(" - ")) {
-                const [start, end] = rawTime.split(" - ");
-                time = `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
-              } else {
-                time = convertTo12Hour(rawTime);
-              }
+// 📥 دالة جلب الحجوزات
+function fetchBookings() {
+  const bookingsRef = ref(database, 'bookings/');
+  onValue(bookingsRef, (snapshot) => {
+    tableBody.innerHTML = "";
 
-              const attended = data.attended ? "✔️" : "❌";
+    let total = 0;
+    let allTimes = [];
+    let allDays = new Set();
 
-              total++;
-              allTimes.push(time);
+    snapshot.forEach(dateSnap => {
+      const dateKey = dateSnap.key;
+      allDays.add(dateKey);
+      const timesSnap = dateSnap.val();
 
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${name}</td>
-                <td>${phone}</td>
-                <td><button onclick="sendWhatsapp('${phone}', '${name}', '${date}', '${time}')">📤</button></td>
-                <td>${date}</td>
-                <td>${time}</td>
-                <td><button onclick="toggleAttended('${dateKey}', '${timeKey}', '${bookingId}', ${data.attended ? 'false' : 'true'})">${attended}</button></td>
-                <td><button onclick="deleteBooking('${dateKey}', '${timeKey}', '${bookingId}')">🗑</button></td>
-              `;
-              tableBody.appendChild(tr);
-            }
+      for (let timeKey in timesSnap) {
+        const timeGroup = timesSnap[timeKey];
+
+        for (let bookingId in timeGroup) {
+          const data = timeGroup[bookingId];
+          const name = data.name || "—";
+          const phone = data.phone || "—";
+          const date = data.date || dateKey;
+          const rawTime = data.time || timeKey;
+
+          let time;
+          if (rawTime.includes(" - ")) {
+            const [start, end] = rawTime.split(" - ");
+            time = `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
+          } else {
+            time = convertTo12Hour(rawTime);
           }
-        });
+
+          const attended = data.attended ? "✔️" : "❌";
+
+          total++;
+          allTimes.push(time);
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${name}</td>
+            <td>${phone}</td>
+            <td><button onclick="sendWhatsapp('${phone}', '${name}', '${date}', '${time}')">📤</button></td>
+            <td>${date}</td>
+            <td>${time}</td>
+            <td><button onclick="toggleAttended('${dateKey}', '${timeKey}', '${bookingId}', ${data.attended ? 'false' : 'true'})">${attended}</button></td>
+            <td><button onclick="deleteBooking('${dateKey}', '${timeKey}', '${bookingId}')">🗑</button></td>
+          `;
+          tableBody.appendChild(tr);
+        }
+      }
+    });
+
+    document.getElementById("totalBookings").innerText = total;
+    document.getElementById("bookingDays").innerText = allDays.size;
+
+    const timeCounts = {};
+    allTimes.forEach(t => timeCounts[t] = (timeCounts[t] || 0) + 1);
+    const peak = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById("peakTime").innerText = peak ? `${peak[0]} (${peak[1]})` : "—";
+  }, {
+    onlyOnce: true
+  });
+}
+
+// علشان يشتغل مع زر التحديث
+window.fetchBookings = fetchBookings;
 
         document.getElementById("totalBookings").innerText = total;
         document.getElementById("bookingDays").innerText = allDays.size;
@@ -264,6 +264,7 @@ window.login = login;
   </script>
 </body>
 </html>
+
 
 
 
