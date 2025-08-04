@@ -126,7 +126,6 @@
     function fetchBookings() {
       const bookingsRef = ref(database, 'bookings/');
       onValue(bookingsRef, (snapshot) => {
-    window.fetchBookings = fetchBookings;
         tableBody.innerHTML = "";
         
 
@@ -203,6 +202,7 @@ if (rawTime.includes(" - ")) {
         onlyOnce: true
       });
     }
+    window.fetchBookings = fetchBookings;
 
     window.sendWhatsapp = function(phone, name, date, time) {
       const msg = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} من ${time} في عيادة دكتورة هايدي.`;
@@ -265,6 +265,7 @@ window.login = login;
   </script>
 </body>
 </html>
+
 
 
 
