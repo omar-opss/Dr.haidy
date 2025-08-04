@@ -178,8 +178,6 @@
         allTimes.forEach(t => timeCounts[t] = (timeCounts[t] || 0) + 1);
         const peak = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0];
         document.getElementById("peakTime").innerText = peak ? `${peak[0]} (${peak[1]})` : "—";
-      }, {
-        onlyOnce: true
       });
     }
 
@@ -256,5 +254,6 @@
   </script>
 </body>
 </html>
+
 
 
