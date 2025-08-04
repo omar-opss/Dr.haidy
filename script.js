@@ -23,10 +23,11 @@ function convertTo12Hour(time24) {
   return `${hour}:${minute} ${ampm}`;
 }
 
-export function fetchBookings() {
+function fetchBookings() {
   const bookingsRef = ref(database, 'bookings/');
   onValue(bookingsRef, (snapshot) => {
     tableBody.innerHTML = "";
+
     let total = 0;
     let allTimes = [];
     let allDays = new Set();
@@ -44,10 +45,12 @@ export function fetchBookings() {
           const name = data.name || "—";
           const phone = data.phone || "—";
           const date = data.date || dateKey;
+
           let rawTime = data.time || timeKey;
           let time = rawTime.includes(" - ")
             ? rawTime.split(" - ").map(convertTo12Hour).join(" - ")
             : convertTo12Hour(rawTime);
+
           const attended = data.attended ? "✔️" : "❌";
 
           total++;
@@ -80,4 +83,40 @@ export function fetchBookings() {
   });
 }
 
+function sendWhatsapp(phone, name, date, time) {
+  const msg = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} من ${time} في عيادة دكتورة هايدي.`;
+  const url = `https://wa.me/${phone.replace(/^0/, "2")}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+
+function toggleAttended(date, time, id, newState) {
+  const bookingRef = ref(database, `bookings/${date}/${time}/${id}`);
+  update(bookingRef, { attended: newState });
+  fetchBookings();
+}
+
+function deleteBooking(date, time, id) {
+  const bookingRef = ref(database, `bookings/${date}/${time}/${id}`);
+  remove(bookingRef).then(() => {
+    alert("تم حذف الحجز");
+    fetchBookings();
+  });
+}
+
+function login() {
+  const pass = document.getElementById("adminPass").value;
+  if (pass === "omar2025") {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    fetchBookings();
+  } else {
+    alert("كلمة السر غير صحيحة");
+  }
+}
+
+// لازم نعرّفهم في window عشان الأزرار تشتغل
 window.fetchBookings = fetchBookings;
+window.sendWhatsapp = sendWhatsapp;
+window.toggleAttended = toggleAttended;
+window.deleteBooking = deleteBooking;
+window.login = login;
