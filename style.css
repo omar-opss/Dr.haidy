@@ -33,6 +33,17 @@ body {
 .booking-form button {
   padding: 12px;
   background-color: #ff6600;
+  .time-range {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.time-range label {
+  color: #ff6600;
+  font-weight: bold;
+}
   border: none;
   border-radius: 6px;
   color: white;
@@ -57,4 +68,5 @@ body {
   background-color: #111;
   border-bottom: 1px solid #333;
 }
+
 
