@@ -1,5 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
-import { getDatabase, ref, push, get } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvdYelGHJPA49QsZ9wCaAyy9tT-eP3nrw",
@@ -8,53 +8,76 @@ const firebaseConfig = {
   projectId: "clinic-booking-eeaee",
   storageBucket: "clinic-booking-eeaee.appspot.com",
   messagingSenderId: "21071960927",
-  appId: "1:21071960927:web:d46bea119060b4f046b4ea",
-  measurementId: "G-8H7KWF6Q09"
+  appId: "1:21071960927:web:d46bea119060b4f046b4ea"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const database = getDatabase(app);
+const tableBody = document.getElementById("tableBody");
 
-document.getElementById('bookingForm').addEventListener('submit', async function (e) {
-  e.preventDefault();
+function convertTo12Hour(time24) {
+  const [hourStr, minute] = time24.split(":");
+  let hour = parseInt(hourStr);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12;
+  return `${hour}:${minute} ${ampm}`;
+}
 
-  const name = document.getElementById('name').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const date = document.getElementById('date').value;
-  const time = document.getElementById('time').value;
-  const status = document.getElementById('status');
+export function fetchBookings() {
+  const bookingsRef = ref(database, 'bookings/');
+  onValue(bookingsRef, (snapshot) => {
+    tableBody.innerHTML = "";
+    let total = 0;
+    let allTimes = [];
+    let allDays = new Set();
 
-  if (!name || !phone || !date || !time) {
-    status.textContent = "Please fill all fields.";
-    return;
-  }
+    snapshot.forEach(dateSnap => {
+      const dateKey = dateSnap.key;
+      allDays.add(dateKey);
+      const timesSnap = dateSnap.val();
 
-  status.textContent = "⏳ Checking availability...";
+      for (let timeKey in timesSnap) {
+        const timeGroup = timesSnap[timeKey];
 
-  const bookingRef = ref(db, 'bookings/' + date + '/' + time);
-  const snapshot = await get(bookingRef);
+        for (let bookingId in timeGroup) {
+          const data = timeGroup[bookingId];
+          const name = data.name || "—";
+          const phone = data.phone || "—";
+          const date = data.date || dateKey;
+          let rawTime = data.time || timeKey;
+          let time = rawTime.includes(" - ")
+            ? rawTime.split(" - ").map(convertTo12Hour).join(" - ")
+            : convertTo12Hour(rawTime);
+          const attended = data.attended ? "✔️" : "❌";
 
-  if (snapshot.exists()) {
-    status.textContent = "⚠️ This time is already booked.";
-    return;
-  }
+          total++;
+          allTimes.push(time);
 
-  await push(bookingRef, {
-    name: name,
-    phone: phone,
-    date: date,
-    time: time
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${name}</td>
+            <td>${phone}</td>
+            <td><button onclick="sendWhatsapp('${phone}', '${name}', '${date}', '${time}')">📤</button></td>
+            <td>${date}</td>
+            <td>${time}</td>
+            <td><button onclick="toggleAttended('${dateKey}', '${timeKey}', '${bookingId}', ${data.attended ? 'false' : 'true'})">${attended}</button></td>
+            <td><button onclick="deleteBooking('${dateKey}', '${timeKey}', '${bookingId}')">🗑</button></td>
+          `;
+          tableBody.appendChild(tr);
+        }
+      }
+    });
+
+    document.getElementById("totalBookings").innerText = total;
+    document.getElementById("bookingDays").innerText = allDays.size;
+
+    const timeCounts = {};
+    allTimes.forEach(t => timeCounts[t] = (timeCounts[t] || 0) + 1);
+    const peak = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById("peakTime").innerText = peak ? `${peak[0]} (${peak[1]})` : "—";
+  }, {
+    onlyOnce: true
   });
+}
 
-  status.textContent = "✅ Booking confirmed!";
-
-  const message = `Name: ${name}%0APhone: ${phone}%0ADate: ${date}%0ATime: ${time}`;
-  const whatsappURL = `https://wa.me/201010876605?text=${message}`;
-  window.open(whatsappURL, '_blank');
-
-  this.reset();
-});
-
-setTimeout(() => {
-  window.location.href = whatsappURL;
-}, 100); // تأخير 0.1 ثانية
+window.fetchBookings = fetchBookings;
