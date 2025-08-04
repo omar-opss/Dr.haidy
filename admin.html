@@ -114,6 +114,15 @@
     const database = getDatabase(app);
     const tableBody = document.getElementById("tableBody");
 
+    // 🔁 تحويل الوقت من 24h إلى 12h بصيغة AM/PM
+    function convertTo12Hour(time24) {
+      const [hourStr, minute] = time24.split(":");
+      let hour = parseInt(hourStr);
+      const ampm = hour >= 12 ? "PM" : "AM";
+      hour = hour % 12 || 12;
+      return `${hour}:${minute} ${ampm}`;
+    }
+
     function fetchBookings() {
       const bookingsRef = ref(database, 'bookings/');
       onValue(bookingsRef, (snapshot) => {
@@ -136,7 +145,17 @@
               const name = data.name || "—";
               const phone = data.phone || "—";
               const date = data.date || dateKey;
-              const time = data.time || timeKey;
+              let rawTime = data.time || timeKey;
+              let time = rawTime;
+
+              // ⏰ تحويل الوقت إلى 12h
+              if (rawTime.includes(" - ")) {
+                const [start, end] = rawTime.split(" - ");
+                time = `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
+              } else {
+                time = convertTo12Hour(rawTime);
+              }
+
               const attended = data.attended ? "✔️" : "❌";
 
               total++;
