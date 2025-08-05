@@ -72,20 +72,3 @@ document.getElementById("bookingForm").addEventListener("submit", async function
 
   this.reset();
 });
-
-<script>
-  const dateInput = document.getElementById("date");
-  const dayLabel = document.getElementById("dayNameLabel");
-
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-  dateInput.addEventListener("change", function () {
-    const selectedDate = new Date(this.value);
-    if (!isNaN(selectedDate)) {
-      const dayName = days[selectedDate.getDay()];
-      dayLabel.textContent = `Day: ${dayName}`;
-    } else {
-      dayLabel.textContent = "";
-    }
-  });
-</script>
