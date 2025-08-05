@@ -14,13 +14,14 @@
     <input type="text" id="name" placeholder="Your Name" required />
     <input type="tel" id="phone" placeholder="Phone Number" required />
 
-    <!-- ✅ اسم اليوم بالإنجليزي هنا -->
+    <!-- ✅ التاريخ + اسم اليوم -->
     <div class="date-section">
-  <label for="date" style="color: #ff6600; font-weight: bold;">Day:</label>
-  <input type="date" id="date" required />
-  <div id="dayNameLabel" style="color: #ccc; margin-top: 5px;"></div>
-</div>
+      <label for="date" style="color: #ff6600; font-weight: bold;">Day:</label>
+      <input type="date" id="date" required />
+      <div id="dayNameLabel" style="color: #ccc; margin-top: 5px; font-size: 14px;"></div>
+    </div>
 
+    <!-- ✅ الوقت -->
     <div class="time-range">
       <label for="start-time">From:</label>
       <input type="time" id="start-time" required />
@@ -29,16 +30,13 @@
       <input type="time" id="end-time" required />
     </div>
 
+    <!-- ✅ زر الحجز -->
     <button type="submit">Confirm Booking</button>
     <p id="status"></p>
   </form>
 
+  <!-- ✅ سكريبت Firebase والتعامل -->
   <script type="module" src="main.js"></script>
 
-  <!-- ✅ كود عرض اسم اليوم -->
-  
 </body>
 </html>
-
-
-
