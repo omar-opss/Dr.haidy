@@ -17,63 +17,60 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // 🧾 Handle form submit
-document.getElementById("bookingForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("bookingForm");
 
-  const name = document.getElementById("name").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const date = document.getElementById("date").value;
-  const start = document.getElementById("start-time").value;
-  const end = document.getElementById("end-time").value;
-  const status = document.getElementById("status");
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-  // ✅ Basic validation
-  if (!name || !phone || !date || !start || !end) {
-    status.textContent = "Please fill all fields.";
-    return;
-  }
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const date = document.getElementById("date").value;
+    const start = document.getElementById("start-time").value;
+    const end = document.getElementById("end-time").value;
+    const status = document.getElementById("status");
 
-  if (start >= end) {
-    status.textContent = "End time must be after start time.";
-    return;
-  }
+    if (!name || !phone || !date || !start || !end) {
+      status.textContent = "Please fill all fields.";
+      return;
+    }
 
-  const time = `${start} - ${end}`;
-  status.textContent = "⏳ Checking availability...";
+    if (start >= end) {
+      status.textContent = "End time must be after start time.";
+      return;
+    }
 
-  // 🔍 Check if time already booked
-  const bookingRef = ref(db, `bookings/${date}/${time}`);
-  const snapshot = await get(bookingRef);
+    const time = `${start} - ${end}`;
+    status.textContent = "⏳ Checking availability...";
 
-  if (snapshot.exists()) {
-    status.textContent = "⚠️ This time is already booked.";
-    return;
-  }
+    const bookingRef = ref(db, `bookings/${date}/${time}`);
+    const snapshot = await get(bookingRef);
 
-  // ✅ Save booking
-  await push(bookingRef, {
-    name: name,
-    phone: phone,
-    date: date,
-    time: time
+    if (snapshot.exists()) {
+      status.textContent = "⚠️ This time is already booked.";
+      return;
+    }
+
+    await push(bookingRef, {
+      name: name,
+      phone: phone,
+      date: date,
+      time: time
+    });
+
+    status.textContent = "✅ Booking confirmed!";
+
+    const message = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} من ${time} في عيادة دكتورة هايدي.`;
+    const whatsappURL = `https://wa.me/201010876605?text=${encodeURIComponent(message)}`;
+
+    setTimeout(() => {
+      window.open(whatsappURL, '_blank');
+    }, 500);
+
+    this.reset();
   });
 
-  // ✅ Show confirmation
-  status.textContent = "✅ Booking confirmed!";
-
-  // 🔗 Open WhatsApp
-  const message = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} من ${time} في عيادة دكتورة هايدي.`;
-  const whatsappURL = `https://wa.me/201010876605?text=${encodeURIComponent(message)}`;
-
-  setTimeout(() => {
-    window.open(whatsappURL, '_blank');
-  }, 500); // نصف ثانية تأخير
-
-  this.reset();
-});
-
-// ✅ عرض اسم اليوم بالإنجليزي
-document.addEventListener("DOMContentLoaded", () => {
+  // ✅ عرض اسم اليوم
   const dateInput = document.getElementById("date");
   const dayLabel = document.getElementById("dayNameLabel");
 
@@ -89,31 +86,5 @@ document.addEventListener("DOMContentLoaded", () => {
         dayLabel.textContent = "";
       }
     });
-  }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const dateInput = document.getElementById("date");
-  const dayLabel = document.getElementById("dayNameLabel");
-
-  console.log("dateInput:", dateInput);
-  console.log("dayLabel:", dayLabel);
-
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-  if (dateInput && dayLabel) {
-    dateInput.addEventListener("change", function () {
-      const selectedDate = new Date(this.value);
-      if (!isNaN(selectedDate)) {
-        const dayName = days[selectedDate.getDay()];
-        dayLabel.textContent = `Day: ${dayName}`;
-        console.log("✅ Day set:", dayName);
-      } else {
-        dayLabel.textContent = "";
-        console.log("❌ Invalid date");
-      }
-    });
-  } else {
-    console.log("🚨 عنصر التاريخ أو الليبل مش موجودين");
   }
 });
