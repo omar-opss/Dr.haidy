@@ -16,7 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Form submit handler
+// 🧾 Handle form submit
 document.getElementById("bookingForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
@@ -27,7 +27,7 @@ document.getElementById("bookingForm").addEventListener("submit", async function
   const end = document.getElementById("end-time").value;
   const status = document.getElementById("status");
 
-  // Validation
+  // ✅ Basic validation
   if (!name || !phone || !date || !start || !end) {
     status.textContent = "Please fill all fields.";
     return;
@@ -39,10 +39,9 @@ document.getElementById("bookingForm").addEventListener("submit", async function
   }
 
   const time = `${start} - ${end}`;
-
-  // Step 1: Checking...
   status.textContent = "⏳ Checking availability...";
 
+  // 🔍 Check if time already booked
   const bookingRef = ref(db, `bookings/${date}/${time}`);
   const snapshot = await get(bookingRef);
 
@@ -51,7 +50,7 @@ document.getElementById("bookingForm").addEventListener("submit", async function
     return;
   }
 
-  // Step 2: Save to database
+  // ✅ Save booking
   await push(bookingRef, {
     name: name,
     phone: phone,
@@ -59,33 +58,36 @@ document.getElementById("bookingForm").addEventListener("submit", async function
     time: time
   });
 
-  // Step 3: Booking confirmed
+  // ✅ Show confirmation
   status.textContent = "✅ Booking confirmed!";
 
-  // Step 4: Open WhatsApp
+  // 🔗 Open WhatsApp
   const message = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} من ${time} في عيادة دكتورة هايدي.`;
   const whatsappURL = `https://wa.me/201010876605?text=${encodeURIComponent(message)}`;
-  
+
   setTimeout(() => {
     window.open(whatsappURL, '_blank');
-  }, 500); // نصف ثانية تأخير لراحة المستخدم
+  }, 500); // نصف ثانية تأخير
 
   this.reset();
 });
 
-const dateInput = document.getElementById("date");
-const dayLabel = document.getElementById("dayNameLabel");
+// ✅ عرض اسم اليوم بالإنجليزي
+document.addEventListener("DOMContentLoaded", () => {
+  const dateInput = document.getElementById("date");
+  const dayLabel = document.getElementById("dayNameLabel");
 
-const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-if (dateInput) {
-  dateInput.addEventListener("change", function () {
-    const selectedDate = new Date(this.value);
-    if (!isNaN(selectedDate)) {
-      const dayName = days[selectedDate.getDay()];
-      dayLabel.textContent = `Day: ${dayName}`;
-    } else {
-      dayLabel.textContent = "";
-    }
-  });
-}
+  if (dateInput && dayLabel) {
+    dateInput.addEventListener("change", function () {
+      const selectedDate = new Date(this.value);
+      if (!isNaN(selectedDate)) {
+        const dayName = days[selectedDate.getDay()];
+        dayLabel.textContent = `Day: ${dayName}`;
+      } else {
+        dayLabel.textContent = "";
+      }
+    });
+  }
+});
