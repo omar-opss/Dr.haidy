@@ -13,6 +13,9 @@
 
     <input type="text" id="name" placeholder="Your Name" required />
     <input type="tel" id="phone" placeholder="Phone Number" required />
+
+    <!-- ✅ اسم اليوم بالإنجليزي هنا -->
+    <label id="dayNameLabel" style="color: #ff6600; font-weight: bold;"></label>
     <input type="date" id="date" required />
 
     <div class="time-range">
@@ -28,5 +31,24 @@
   </form>
 
   <script type="module" src="main.js"></script>
+
+  <!-- ✅ كود عرض اسم اليوم -->
+  <script>
+    const dateInput = document.getElementById("date");
+    const dayLabel = document.getElementById("dayNameLabel");
+
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    dateInput.addEventListener("change", function () {
+      const selectedDate = new Date(this.value);
+      if (!isNaN(selectedDate)) {
+        const dayName = days[selectedDate.getDay()];
+        dayLabel.textContent = `Day: ${dayName}`;
+      } else {
+        dayLabel.textContent = "";
+      }
+    });
+  </script>
+
 </body>
 </html>
