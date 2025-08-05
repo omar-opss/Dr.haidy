@@ -91,3 +91,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const dateInput = document.getElementById("date");
+  const dayLabel = document.getElementById("dayNameLabel");
+
+  console.log("dateInput:", dateInput);
+  console.log("dayLabel:", dayLabel);
+
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  if (dateInput && dayLabel) {
+    dateInput.addEventListener("change", function () {
+      const selectedDate = new Date(this.value);
+      if (!isNaN(selectedDate)) {
+        const dayName = days[selectedDate.getDay()];
+        dayLabel.textContent = `Day: ${dayName}`;
+        console.log("✅ Day set:", dayName);
+      } else {
+        dayLabel.textContent = "";
+        console.log("❌ Invalid date");
+      }
+    });
+  } else {
+    console.log("🚨 عنصر التاريخ أو الليبل مش موجودين");
+  }
+});
