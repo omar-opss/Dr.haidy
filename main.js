@@ -40,25 +40,26 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const time = `${start} - ${end}`;
-    status.textContent = "⏳ Checking availability...";
+const bookingRef = ref(db, `bookings/${date}/${time}`);
+const snapshot = await get(bookingRef);
 
-    const bookingRef = ref(db, `bookings/${date}/${time}`);
-    const snapshot = await get(bookingRef);
+// ✅ إذا فيه حجز بنفس الوقت، نمنع الحجز الجديد
+if (snapshot.exists()) {
+  status.style.color = "red";
+  status.textContent = "⚠️ This time is already booked.";
+  return;
+}
 
-    if (snapshot.exists()) {
-      status.textContent = "⚠️ This time is already booked.";
-      return;
-    }
+// ✅ نحجز الوقت مباشرة (من غير push)
+await set(bookingRef, {
+  name: name,
+  phone: phone,
+  date: date,
+  time: time
+});
 
-    await push(bookingRef, {
-      name: name,
-      phone: phone,
-      date: date,
-      time: time
-    });
-
-    status.textContent = "✅ Booking confirmed!";
+status.style.color = "green";
+status.textContent = "✅ Booking confirmed successfully!";
 
     const message = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} من ${time} في عيادة دكتورة هايدي.`;
     const whatsappURL = `https://wa.me/201010876605?text=${encodeURIComponent(message)}`;
@@ -88,3 +89,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
