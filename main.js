@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
-import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -95,6 +95,7 @@ status.textContent = "✅ Booking confirmed successfully!";
     });
   }
 });
+
 
 
 
