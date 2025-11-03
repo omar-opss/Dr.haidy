@@ -36,10 +36,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (start >= end) {
-      status.textContent = "End time must be after start time.";
-      return;
-    }
+  status.textContent = "End time must be after start time.";
+  return;
+}
 
+// ✅ نكوّن الوقت من البداية والنهاية
+const time = `${start} - ${end}`;
+
+status.textContent = "⏳ Checking availability...";
+
+// ✅ نتحقق من الحجز
 const bookingRef = ref(db, `bookings/${date}/${time}`);
 const snapshot = await get(bookingRef);
 
@@ -89,4 +95,5 @@ status.textContent = "✅ Booking confirmed successfully!";
     });
   }
 });
+
 
