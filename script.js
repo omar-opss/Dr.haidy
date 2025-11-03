@@ -1,152 +1,199 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+// هنستنى لحد ما الصفحة كلها تحمل عشان نضمن إن كل العناصر موجودة
+document.addEventListener('DOMContentLoaded', () => {
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDvdYelGHJPA49QsZ9wCaAyy9tT-eP3nrw",
-  authDomain: "clinic-booking-eeaee.firebaseapp.com",
-  databaseURL: "https://clinic-booking-eeaee-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "clinic-booking-eeaee",
-  storageBucket: "clinic-booking-eeaee.appspot.com",
-  messagingSenderId: "21071960927",
-  appId: "1:21071960927:web:d46bea119060b4f046b4ea"
-};
+    // --- 1. تعريف كل العناصر اللي هنتعامل معاها ---
 
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
-const tableBody = document.getElementById("tableBody");
+    // حاويات الخطوات
+    const reservationContainer = document.getElementById('reservation-container');
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const step3 = document.getElementById('step-3');
 
-function convertTo12Hour(time24) {
-  const [hourStr, minute] = time24.split(":");
-  let hour = parseInt(hourStr);
-  const ampm = hour >= 12 ? "PM" : "AM";
-  hour = hour % 12 || 12;
-  return `${hour}:${minute} ${ampm}`;
-}
+    // شريط الخطوات (الأرقام 1, 2, 3)
+    const stepIndicator1 = document.querySelector('.step[data-step="1"]');
+    const stepIndicator2 = document.querySelector('.step[data-step="2"]');
+    const stepIndicator3 = document.querySelector('.step[data-step="3"]');
 
-function fetchBookings() {
-  const bookingsRef = ref(database, 'bookings/');
-  onValue(bookingsRef, (snapshot) => {
-    tableBody.innerHTML = "";
+    // زراير التنقل
+    const nextToStep2Btn = document.getElementById('next-to-step-2');
+    const nextToStep3Btn = document.getElementById('next-to-step-3');
+    const backToStep1Btn = document.getElementById('back-to-step-1');
+    const backToStep2Btn = document.getElementById('back-to-step-2');
+    
+    // فورم الحجز
+    const bookingForm = document.getElementById('booking-form');
+    const submitBookingBtn = document.getElementById('submit-booking');
 
-    let total = 0;
-    let allTimes = [];
-    let allDays = new Set();
+    // شاشة الأدمن لوجن
+    const showAdminLoginBtn = document.getElementById('show-admin-login-btn');
+    const adminLoginContainer = document.getElementById('admin-login-container');
+    const adminLoginBtn = document.getElementById('admin-login-btn');
+    const adminCancelBtn = document.getElementById('admin-cancel-btn');
 
-    snapshot.forEach(dateSnap => {
-      const dateKey = dateSnap.key;
-      allDays.add(dateKey);
-      const timesSnap = dateSnap.val();
+    // شاشة نجاح الحجز
+    const successMessage = document.getElementById('success-message');
+    const successOkBtn = document.getElementById('success-ok-btn');
 
-      for (let timeKey in timesSnap) {
-        const timeGroup = timesSnap[timeKey];
+    // --- 2. متغيرات لحفظ بيانات الحجز ---
+    let selectedDate = '';
+    let selectedTime = '';
 
-        for (let bookingId in timeGroup) {
-          const data = timeGroup[bookingId];
-          const name = data.name || "—";
-          const phone = data.phone || "—";
-          const date = data.date || dateKey;
-          const rawTime = data.time || timeKey;
+    // --- 3. دوال (Functions) مساعدة ---
 
-          let time;
-          if (rawTime.includes(" - ")) {
-            const [start, end] = rawTime.split(" - ");
-            time = `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
-          } else {
-            time = convertTo12Hour(rawTime);
-          }
+    // فانكشن لتغيير الخطوة
+    function goToStep(stepNum) {
+        // إخفاء كل الخطوات
+        [step1, step2, step3].forEach(step => step.classList.add('hidden'));
+        
+        // إلغاء تنشيط كل مؤشرات الخطوات
+        [stepIndicator1, stepIndicator2, stepIndicator3].forEach(ind => ind.classList.remove('active'));
 
-          const attended = data.attended ? "✔️" : "❌";
-
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${name}</td>
-            <td>${phone}</td>
-            <td><button onclick="sendWhatsapp('${phone}', '${name}', '${date}', '${time}')">📤</button></td>
-            <td>${date}</td>
-            <td>${time}</td>
-            <td><button onclick="toggleAttended('${dateKey}', '${timeKey}', '${bookingId}', ${data.attended ? 'false' : 'true'})">${attended}</button></td>
-            <td><button onclick="deleteBooking('${dateKey}', '${timeKey}', '${bookingId}')">🗑</button></td>
-          `;
-          tableBody.appendChild(tr);
-          total++;
-          allTimes.push(time);
+        // إظهار الخطوة المطلوبة وتنشيط مؤشرها
+        if (stepNum === 1) {
+            step1.classList.remove('hidden');
+            stepIndicator1.classList.add('active');
+        } else if (stepNum === 2) {
+            step2.classList.remove('hidden');
+            stepIndicator1.classList.add('active');
+            stepIndicator2.classList.add('active');
+        } else if (stepNum === 3) {
+            step3.classList.remove('hidden');
+            stepIndicator1.classList.add('active');
+            stepIndicator2.classList.add('active');
+            stepIndicator3.classList.add('active');
         }
-      }
+    }
+
+    // --- 4. ربط الأحداث (Event Listeners) ---
+
+    // التنقل من خطوة 1 إلى 2
+    nextToStep2Btn.addEventListener('click', () => {
+        // TODO: المفروض هنا نتأكد إن اليوزر اختار تاريخ
+        // selectedDate = ... (هناخد القيمة من التقويم)
+        goToStep(2);
     });
 
-    document.getElementById("totalBookings").innerText = total;
-    document.getElementById("bookingDays").innerText = allDays.size;
+    // التنقل من خطوة 2 إلى 3
+    nextToStep3Btn.addEventListener('click', () => {
+        // TODO: المفروض هنا نتأكد إن اليوزر اختار وقت
+        // selectedTime = ... (هناخد القيمة من زرار الوقت)
+        goToStep(3);
+    });
 
-    const timeCounts = {};
-    allTimes.forEach(t => timeCounts[t] = (timeCounts[t] || 0) + 1);
-    const peak = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0];
-    document.getElementById("peakTime").innerText = peak ? `${peak[0]} (${peak[1]})` : "—";
-  }, { onlyOnce: true });
-}
+    // الرجوع من 2 إلى 1
+    backToStep1Btn.addEventListener('click', () => {
+        goToStep(1);
+    });
 
-function login() {
-  const pass = document.getElementById("adminPass").value;
-  if (pass === "omar2025") {
-    document.getElementById("loginForm").style.display = "none";
-    document.getElementById("adminPanel").style.display = "block";
-    fetchBookings();
-  } else {
-    alert("كلمة السر غير صحيحة");
-  }
-}
+    // الرجوع من 3 إلى 2
+    backToStep2Btn.addEventListener('click', () => {
+        goToStep(2);
+    });
 
-function sendWhatsapp(phone, name, date, time) {
-  const msg = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} من ${time} في عيادة دكتورة هايدي.`;
-  const url = `https://wa.me/${phone.replace(/^0/, "2")}?text=${encodeURIComponent(msg)}`;
-  window.open(url, '_blank');
-}
+    // --- 5. لوجيك لوجن الأدمن ---
 
-function toggleAttended(date, time, id, newState) {
-  const bookingRef = ref(database, `bookings/${date}/${time}/${id}`);
-  update(bookingRef, { attended: newState });
-  fetchBookings();
-}
+    // إظهار شاشة لوجن الأدمن
+    showAdminLoginBtn.addEventListener('click', () => {
+        reservationContainer.classList.add('hidden'); // اخفي خطوات الحجز
+        adminLoginContainer.classList.remove('hidden'); // اظهر شاشة اللوجن
+    });
 
-function deleteBooking(date, time, id) {
-  const bookingRef = ref(database, `bookings/${date}/${time}/${id}`);
-  remove(bookingRef).then(() => {
-    alert("تم حذف الحجز");
-    fetchBookings();
-  });
-}
+    // إخفاء شاشة اللوجن (لما يدوس Cancel)
+    adminCancelBtn.addEventListener('click', () => {
+        adminLoginContainer.classList.add('hidden'); // اخفي شاشة اللوجن
+        reservationContainer.classList.remove('hidden'); // اظهر خطوات الحجز تاني
+    });
 
-function exportToExcel() {
-  const rows = [];
-  const headers = ["الاسم", "رقم الهاتف", "تاريخ", "وقت", "الحضور"];
-  rows.push(headers);
+    // لما الأدمن يدوس Login
+    adminLoginBtn.addEventListener('click', () => {
+        const username = document.getElementById('admin-username').value;
+        const password = document.getElementById('admin-password').value;
 
-  document.querySelectorAll("#tableBody tr").forEach(row => {
-    const cells = row.querySelectorAll("td");
-    if (cells.length >= 5) {
-      const rowData = [
-        cells[0].innerText,
-        cells[1].innerText,
-        cells[3].innerText,
-        cells[4].innerText,
-        cells[5].innerText
-      ];
-      rows.push(rowData);
-    }
-  });
+        // TODO: هنا هتحط كود التحقق بتاعك
+        // مثال:
+        if (password === "omar2025") { // ده الباسورد اللي كان في الكود القديم بتاعك
+            alert('Login Successful!');
+            // المفروض هنا توديه لصفحة الأدمن بانل
+            // window.location.href = 'admin.html'; // <--- زي كده
+        } else {
+            alert('Wrong username or password');
+        }
+    });
 
-  const worksheet = XLSX.utils.aoa_to_sheet(rows);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
-  XLSX.writeFile(workbook, "الحجوزات.xlsx");
-}
+    // --- 6. لوجيك الحجز (Booking Form) ---
 
-// تسجيل الدوال في window علشان تشتغل في HTML
-window.login = login;
-window.fetchBookings = fetchBookings;
-window.sendWhatsapp = sendWhatsapp;
-window.toggleAttended = toggleAttended;
-window.deleteBooking = deleteBooking;
-window.exportToExcel = exportToExcel;
+    // لما اليوزر يدوس "Book Now"
+    bookingForm.addEventListener('submit', (event) => {
+        event.preventDefault(); // امنع الصفحة إنها تعمل ريلود
 
-// زر التحديث
-document.getElementById("refreshBtn").addEventListener("click", fetchBookings);
+        // 1.اجمع البيانات من الفورم
+        const name = document.getElementById('user-name').value;
+        const phone = document.getElementById('user-phone').value;
+        const email = document.getElementById('user-email').value;
+        const people = document.getElementById('user-people').value;
+
+        // 2. اعرض البيانات في شاشة النجاح (زي الصورة)
+        document.getElementById('success-date').textContent = "2025-11-04"; // TODO: استخدم selectedDate
+        document.getElementById('success-time').textContent = "3:30 PM"; // TODO: استخدم selectedTime
+        document.getElementById('success-people').textContent = people;
+        document.getElementById('success-name').textContent = name;
+        document.getElementById('success-phone').textContent = phone;
+        document.getElementById('success-email').textContent = email;
+
+        // 3. اظهر شاشة النجاح
+        successMessage.classList.remove('hidden');
+
+        
+        // 4. TODO: هنا هتحط كود الـ Firebase بتاعك
+        // اللي هيبعت البيانات دي (name, phone, email, people, selectedDate, selectedTime)
+        // لـ Realtime Database
+        
+        // مثال (ده مجرد مثال، هتستخدم الكود بتاعك):
+        /*
+        import { getDatabase, ref, set } from "firebase/database";
+        const db = getDatabase();
+        set(ref(db, 'bookings/' + selectedDate + '/' + selectedTime), {
+            username: name,
+            email: email,
+            phone: phone,
+            people: people
+        });
+        */
+    });
+
+    // لما اليوزر يدوس "OK" في شاشة النجاح
+    successOkBtn.addEventListener('click', () => {
+        successMessage.classList.add('hidden'); // اخفي الشاشة
+        bookingForm.reset(); // افضّي الفورم
+        goToStep(1); // رجعه للخطوة الأولى
+    });
+
+
+    // --- 7. لوجيك اختيار الوقت والتاريخ (مؤقت) ---
+    // (ده لوجيك بسيط عشان الزراير يبقى شكلها بيتغير)
+
+    // التقويم
+    const dates = document.querySelectorAll('.date-num');
+    dates.forEach(date => {
+        date.addEventListener('click', () => {
+            // شيل 'selected' من كل التواريخ
+            dates.forEach(d => d.classList.remove('selected'));
+            // ضيف 'selected' للي دوست عليه بس
+            date.classList.add('selected');
+            selectedDate = date.textContent; // (ده مجرد مثال بسيط)
+        });
+    });
+
+    // المواعيد
+    const times = document.querySelectorAll('.time-slot');
+    times.forEach(time => {
+        time.addEventListener('click', () => {
+            // شيل 'selected' من كل المواعيد
+            times.forEach(t => t.classList.remove('selected'));
+            // ضيف 'selected' للي دوست عليه بس
+            time.classList.add('selected');
+            selectedTime = time.textContent;
+        });
+    });
+
+});
