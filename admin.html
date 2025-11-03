@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE <!DOCTYPE html>
 <html lang="ar">
 <head>
   <meta charset="UTF-8" />
@@ -82,14 +82,12 @@
   </style>
 </head>
 <body>
-  <!-- نموذج تسجيل الدخول -->
   <div id="loginForm">
     <h2>تسجيل دخول الأدمن</h2>
     <input type="password" id="adminPass" placeholder="كلمة السر" />
     <button id="loginBtn">دخول</button>
   </div>
 
-  <!-- لوحة التحكم -->
   <div id="adminPanel">
     <h1>لوحة تحكم الأدمن</h1>
     <div style="text-align:center;">
@@ -117,10 +115,8 @@
     </table>
   </div>
 
-  <!-- مكتبة Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-  <!-- Firebase + الكود -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -142,11 +138,12 @@
 
     // ⏰ تحويل الوقت لـ 12 ساعة
     function convertTo12Hour(time24) {
-      const [hourStr, minute] = time24.split(":");
-      let hour = parseInt(hourStr);
-      const ampm = hour >= 12 ? "PM" : "AM";
-      hour = hour % 12 || 12;
-      return `${hour}:${minute} ${ampm}`;
+        if (!time24) return "—";
+        const [hourStr, minute] = time24.split(":");
+        let hour = parseInt(hourStr);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        hour = hour % 12 || 12; // 0 أو 12 يصبح 12
+        return `${hour}:${minute} ${ampm}`;
     }
 
     // 🧾 تحميل الحجوزات
@@ -158,96 +155,125 @@
         let allTimes = [];
         let allDays = new Set();
 
+        if (!snapshot.exists()) {
+            console.log("No bookings found.");
+            // تحديث الإحصائيات للصفر
+            document.getElementById("totalBookings").innerText = 0;
+            document.getElementById("bookingDays").innerText = 0;
+            document.getElementById("peakTime").innerText = "—";
+            return;
+        }
+
         snapshot.forEach(dateSnap => {
-          const dateKey = dateSnap.key;
+          const dateKey = dateSnap.key; // التاريخ
           allDays.add(dateKey);
-          const timesSnap = dateSnap.val();
+          const timesSnap = dateSnap.val(); // اوبجكت بالاوقات
 
+          // ⭐️⭐️⭐️ [ التعديل الأساسي هنا ] ⭐️⭐️⭐️
+          // اللوب أصبح يقرأ كل وقت كحجز مستقل
           for (let timeKey in timesSnap) {
-            const timeGroup = timesSnap[timeKey];
-            for (let bookingId in timeGroup) {
-              const data = timeGroup[bookingId];
-              const name = data.name || "—";
-              const phone = data.phone || "—";
-              const date = data.date || dateKey;
-              const rawTime = data.time || timeKey;
+            const data = timesSnap[timeKey]; // بيانات الحجز مباشرة
 
-              let time;
-              if (rawTime.includes(" - ")) {
-                const [start, end] = rawTime.split(" - ");
-                time = `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
-              } else {
-                time = convertTo12Hour(rawTime);
-              }
+            if (typeof data !== 'object' || data === null) continue;
 
-              const attended = data.attended ? "✔️" : "❌";
-              total++;
-              allTimes.push(time);
+            const name = data.name || "—";
+            const phone = data.phone || "—";
+            const date = data.date || dateKey;
+            const rawTime = data.time || timeKey; // "HH:MM - HH:MM"
 
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
+            let time = rawTime; // القيمة الافتراضية
+            try {
+                 if (rawTime.includes(" - ")) {
+                    const [start, end] = rawTime.split(" - ");
+                    time = `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
+                } else {
+                    time = convertTo12Hour(rawTime); // احتياطي
+                }
+            } catch (e) {
+                console.error("Error converting time:", rawTime, e);
+                time = rawTime; // في حالة الخطأ، اعرض الوقت كما هو
+            }
+
+            const attended = data.attended === true ? true : false; // التأكد من أنه boolean
+            const attendedText = attended ? "✔️" : "❌";
+            
+            total++;
+            allTimes.push(time);
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
                 <td>${name}</td>
                 <td>${phone}</td>
                 <td><button class="whatsappBtn" data-phone="${phone}" data-name="${name}" data-date="${date}" data-time="${time}">📤</button></td>
                 <td>${date}</td>
                 <td>${time}</td>
-                <td><button class="attendBtn" data-date="${dateKey}" data-time="${timeKey}" data-id="${bookingId}" data-state="${data.attended ? 'false' : 'true'}">${attended}</button></td>
-                <td><button class="deleteBtn" data-date="${dateKey}" data-time="${timeKey}" data-id="${bookingId}">🗑</button></td>
+                
+                <td><button class="attendBtn" data-date="${dateKey}" data-time="${timeKey}" data-state="${!attended}">${attendedText}</button></td>
+                <td><button class="deleteBtn" data-date="${dateKey}" data-time="${timeKey}">🗑</button></td>
               `;
-              tableBody.appendChild(tr);
-            }
+            tableBody.appendChild(tr);
           }
         });
 
         // تحديث الإحصائيات
         document.getElementById("totalBookings").innerText = total;
         document.getElementById("bookingDays").innerText = allDays.size;
-        const timeCounts = {};
-        allTimes.forEach(t => timeCounts[t] = (timeCounts[t] || 0) + 1);
-        const peak = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0];
-        document.getElementById("peakTime").innerText = peak ? `${peak[0]} (${peak[1]})` : "—";
+        
+        if (allTimes.length > 0) {
+            const timeCounts = {};
+            allTimes.forEach(t => timeCounts[t] = (timeCounts[t] || 0) + 1);
+            const peak = Object.entries(timeCounts).sort((a, b) => b[1] - a[1])[0];
+            document.getElementById("peakTime").innerText = peak ? `${peak[0]} (${peak[1]} مرات)` : "—";
+        } else {
+            document.getElementById("peakTime").innerText = "—";
+        }
       });
     }
 
     // 💬 إرسال واتساب
     function sendWhatsapp(phone, name, date, time) {
-      const msg = `مرحبًا ${name}، تم تأكيد حجزك بتاريخ ${date} في ${time} بعيادة دكتورة أسماء.`;
-      const formatted = phone.replace(/^0/, "2");
+      // ✅ تم توحيد اسم الدكتورة
+      const msg = `مرحبًا ${name}، نذكرك بميعاد حجزك غدًا بتاريخ ${date} في ${time} بعيادة دكتورة هايدي.`;
+      const formatted = phone.replace(/^0/, "2"); // تحويل 010 لـ 2010
       const url = `https://wa.me/${formatted}?text=${encodeURIComponent(msg)}`;
       window.open(url, '_blank');
     }
 
-    // 🔄 تحديث الحضور
-    function toggleAttended(date, time, id, newState) {
-      const bookingRef = ref(db, `bookings/${date}/${time}/${id}`);
+    // 🔄 تحديث الحضور (⭐️ تم التعديل)
+    function toggleAttended(date, time, newState) {
+      // المسار المباشر للحجز
+      const bookingRef = ref(db, `bookings/${date}/${time}`);
       update(bookingRef, { attended: newState });
-      fetchBookings();
+      // لا نحتاج fetchBookings() لأن onValue سيلتقط التغيير
     }
 
-    // 🗑 حذف الحجز
-    function deleteBooking(date, time, id) {
-      const bookingRef = ref(db, `bookings/${date}/${time}/${id}`);
+    // 🗑 حذف الحجز (⭐️ تم التعديل)
+    function deleteBooking(date, time) {
+      if (!confirm("هل أنت متأكد من حذف هذا الحجز؟")) return;
+      
+      // المسار المباشر للحجز
+      const bookingRef = ref(db, `bookings/${date}/${time}`);
       remove(bookingRef).then(() => {
         alert("تم حذف الحجز");
-        fetchBookings();
+        // لا نحتاج fetchBookings() لأن onValue سيلتقط التغيير
       });
     }
 
     // 📤 تصدير Excel
     function exportToExcel() {
       const rows = [];
-      const headers = ["الاسم", "رقم الهاتف", "تاريخ", "وقت", "الحضور"];
+      const headers = ["الاسم", "رقم الهاتف", "التاريخ", "الوقت", "الحضور"];
       rows.push(headers);
 
       document.querySelectorAll("#tableBody tr").forEach(row => {
         const cells = row.querySelectorAll("td");
         if (cells.length >= 5) {
           const rowData = [
-            cells[0].innerText,
-            cells[1].innerText,
-            cells[3].innerText,
-            cells[4].innerText,
-            cells[5].innerText
+            cells[0].innerText, // الاسم
+            cells[1].innerText, // الهاتف
+            cells[3].innerText, // التاريخ
+            cells[4].innerText, // الوقت
+            cells[5].innerText  // الحضور
           ];
           rows.push(rowData);
         }
@@ -262,10 +288,10 @@
     // 🔐 تسجيل الدخول
     document.getElementById("loginBtn").addEventListener("click", () => {
       const pass = document.getElementById("adminPass").value.trim();
-      if (pass === "omar2025") {
+      if (pass === "omar2025") { // كلمة السر
         document.getElementById("loginForm").style.display = "none";
         document.getElementById("adminPanel").style.display = "block";
-        fetchBookings();
+        fetchBookings(); // بدء تحميل البيانات بعد الدخول
       } else {
         alert("كلمة السر غير صحيحة");
       }
@@ -276,18 +302,22 @@
     document.getElementById("exportBtn").addEventListener("click", exportToExcel);
 
     // تفعيل الأزرار داخل الجدول (تفويض الحدث)
+    // (⭐️ تم التعديل)
     tableBody.addEventListener("click", (e) => {
-      if (e.target.classList.contains("whatsappBtn")) {
-        const { phone, name, date, time } = e.target.dataset;
+      const target = e.target.closest("button"); // التأكد من الضغط على الزر
+      if (!target) return;
+
+      if (target.classList.contains("whatsappBtn")) {
+        const { phone, name, date, time } = target.dataset;
         sendWhatsapp(phone, name, date, time);
       }
-      if (e.target.classList.contains("attendBtn")) {
-        const { date, time, id, state } = e.target.dataset;
-        toggleAttended(date, time, id, state === "true");
+      if (target.classList.contains("attendBtn")) {
+        const { date, time, state } = target.dataset;
+        toggleAttended(date, time, state === "true"); // تحويل النص "true" إلى boolean
       }
-      if (e.target.classList.contains("deleteBtn")) {
-        const { date, time, id } = e.target.dataset;
-        deleteBooking(date, time, id);
+      if (target.classList.contains("deleteBtn")) {
+        const { date, time } = target.dataset;
+        deleteBooking(date, time);
       }
     });
   </script>
