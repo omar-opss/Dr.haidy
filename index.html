@@ -1,42 +1,116 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Clinic Booking</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation - Hwary Qairo</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <form id="bookingForm" class="booking-form">
-    <h2>Book Appointment</h2>
+    <header class="main-header">
+        <div class="logo">
+             <img src="https://i.imgur.com/L0yImwN.png" alt="Logo" style="height: 50px; filter: brightness(0) invert(1);">
+        </div>
+        <button id="show-admin-login-btn" class="login-btn">Login</button>
+    </header>
 
-    <input type="text" id="name" placeholder="Your Name" required />
-    <input type="tel" id="phone" placeholder="Phone Number" required />
+    <main id="reservation-container" class="reservation-container">
+        
+        <div class="steps-indicator">
+            <span class="step active" data-step="1">1</span>
+            <span class="step-line"></span>
+            <span class="step" data-step="2">2</span>
+            <span class="step-line"></span>
+            <span class="step" data-step="3">3</span>
+        </div>
 
-    <!-- ✅ التاريخ + اسم اليوم -->
-    <div class="date-section">
-      <label for="date" style="color: #ff6600; font-weight: bold;">Day:</label>
-      <input type="date" id="date" required />
-      <div id="dayNameLabel" style="color: #ccc; margin-top: 5px; font-size: 14px;"></div>
+        <div id="step-1" class="step-content active">
+            <h3>Step 1: Pick a Date</h3>
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button id="prev-month">&lt;</button>
+                    <span>August 2025</span>
+                    <button id="next-month">&gt;</button>
+                </div>
+                <div class="calendar-grid">
+                    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                    <span class="date-num">27</span><span class="date-num">28</span><span class="date-num">29</span><span class="date-num">30</span><span class="date-num">31</span>
+                    <span class="date-num">1</span><span class="date-num selected">2</span>
+                    <span class="date-num">3</span><span class="date-num">4</span><span class="date-num">5</span><span class="date-num">6</span><span class="date-num">7</span><span class="date-num">8</span><span class="date-num">9</span>
+                    <span class="date-num">10</span><span class="date-num">11</span><span class="date-num">12</span><span class="date-num">13</span><span class="date-num">14</span><span class="date-num">15</span><span class="date-num">16</span>
+                    <span class="date-num">17</span><span class="date-num">18</span><span class="date-num today">19</span><span class="date-num">20</span><span class="date-num">21</span><span class="date-num">22</span><span class="date-num">23</span>
+                    <span class="date-num">24</span><span class="date-num">25</span><span class="date-num">26</span><span class="date-num">27</span><span class="date-num">28</span><span class="date-num">29</span><span class="date-num">30</span>
+                    <span class="date-num">31</span><span class="date-num">1</span><span class="date-num">2</span><span class="date-num">3</span><span class="date-num">4</span><span class="date-num">5</span><span class="date-num">6</span>
+                </div>
+            </div>
+            <button id="next-to-step-2" class="btn btn-primary">Next &rarr;</button>
+        </div>
+
+        <div id="step-2" class="step-content hidden">
+            <h3>Step 2: Pick a Time</h3>
+            <div id="time-slots-container" class="time-slots">
+                <button class="time-slot">12:00 PM</button><button class="time-slot">12:30 PM</button><button class="time-slot">1:00 PM</button>
+                <button class="time-slot">1:30 PM</button><button class="time-slot">2:00 PM</button><button class="time-slot">2:30 PM</button>
+                <button class="time-slot">3:00 PM</button><button class="time-slot">3:30 PM</button><button class="time-slot">4:00 PM</button>
+                <button class="time-slot">4:30 PM</button><button class="time-slot selected">5:00 PM</button><button class="time-slot">5:30 PM</button>
+                <button class="time-slot">6:00 PM</button><button class="time-slot">6:30 PM</button><button class="time-slot">7:00 PM</button>
+                <button class="time-slot">7:30 PM</button><button class="time-slot">8:00 PM</button><button class="time-slot">8:30 PM</button>
+                <button class="time-slot">9:00 PM</button><button class="time-slot">9:30 PM</button><button class="time-slot">10:00 PM</button>
+                <button class="time-slot">10:30 PM</button><button class="time-slot">11:00 PM</button><button class="time-slot">11:30 PM</button>
+                <button class="time-slot">12:00 AM</button>
+            </div>
+            <div class="nav-buttons">
+                <button id="back-to-step-1" class="btn btn-secondary">&larr; Back</button>
+                <button id="next-to-step-3" class="btn btn-primary">Next &rarr;</button>
+            </div>
+        </div>
+
+        <div id="step-3" class="step-content hidden">
+            <h3>Step 3: Your Details</h3>
+            <form id="booking-form">
+                <input type="text" id="user-name" placeholder="Your Name" required>
+                <input type="tel" id="user-phone" placeholder="Phone Number" required>
+                <input type="email" id="user-email" placeholder="Email Address" required>
+                <input type="number" id="user-people" placeholder="Number of People" min="1" required>
+                
+                <div class="nav-buttons">
+                    <button id="back-to-step-2" type="button" class="btn btn-secondary">&larr; Back</button>
+                    <button id="submit-booking" type="submit" class="btn btn-primary">Book Now</button>
+                </div>
+            </form>
+        </div>
+
+    </main>
+
+    <div id="admin-login-container" class="admin-login-container hidden">
+        <h3>Admin Login</h3>
+        <input type="text" id="admin-username" placeholder="Username">
+        <input type="password" id="admin-password" placeholder="Password">
+        <button id="admin-login-btn" class="btn btn-primary">Login</button>
+        <button id="admin-cancel-btn" class="btn btn-secondary">Cancel</button>
     </div>
 
-    <!-- ✅ الوقت -->
-    <div class="time-range">
-      <label for="start-time">From:</label>
-      <input type="time" id="start-time" required />
-
-      <label for="end-time">To:</label>
-      <input type="time" id="end-time" required />
+    <div id="success-message" class="success-message-container hidden">
+        <div class="success-box">
+            <h3>Success! We've reserved your spot:</h3>
+            <ul>
+                <li><strong>Date:</strong> <span id="success-date"></span></li>
+                <li><strong>Time:</strong> <span id="success-time"></span></li>
+                <li><strong>People:</strong> <span id="success-people"></span></li>
+                <li><strong>Name:</strong> <span id="success-name"></span></li>
+                <li><strong>Phone:</strong> <span id="success-phone"></span></li>
+                <li><strong>Email:</strong> <span id="success-email"></span></li>
+            </ul>
+            <button id="success-ok-btn" class="btn btn-primary">OK</button>
+        </div>
     </div>
 
-    <!-- ✅ زر الحجز -->
-    <button type="submit">Confirm Booking</button>
-    <p id="status"></p>
-  </form>
 
-  <!-- ✅ سكريبت Firebase والتعامل -->
-  <script type="module" src="main.js"></script>
+    <footer class="main-footer">
+        <p>&copy; 2025 dev.rift</p>
+    </footer>
 
+    <script src="script.js"></script>
 </body>
 </html>
